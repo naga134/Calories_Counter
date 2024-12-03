@@ -17,7 +17,7 @@ export default function RootLayout() {
             assetId: require("@/assets/database/appDatabase.db"),
           }}
         >
-          <Stack />;
+          <Stack />
         </SQLiteProvider>
       </QueryClientProvider>
     </Suspense>
