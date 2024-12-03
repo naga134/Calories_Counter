@@ -7,17 +7,19 @@ import { Text } from "react-native";
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  <Suspense fallback={<Text>Loading...</Text>}>
-    <QueryClientProvider client={queryClient}>
-      <SQLiteProvider
-        useSuspense
-        databaseName="appDatabase.db"
-        assetSource={{
-          assetId: require("@/assets/database/appDatabase.db"),
-        }}
-      >
-        return <Stack />;
-      </SQLiteProvider>
-    </QueryClientProvider>
-  </Suspense>;
+  return (
+    <Suspense fallback={<Text>Loading...</Text>}>
+      <QueryClientProvider client={queryClient}>
+        <SQLiteProvider
+          useSuspense
+          databaseName="appDatabase.db"
+          assetSource={{
+            assetId: require("@/assets/database/appDatabase.db"),
+          }}
+        >
+          <Stack />;
+        </SQLiteProvider>
+      </QueryClientProvider>
+    </Suspense>
+  );
 }
