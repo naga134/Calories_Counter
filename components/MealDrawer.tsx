@@ -67,15 +67,14 @@ function DrawerBody({}: DrawerBodyProps) {
     <View style={styles.sectionBody}>
       {/* Each entry COMES HERE*/}
 
-      {/* Add Entry Button */}
-      <Button
+      {/* <Button
         backgroundColor={Colors.green70}
         iconSource={() => (
           <IconSVG name={"plus-solid"} width={16} color={Colors.green10} />
         )}
         round
         onPress={() => console.log("blip bloop")}
-      />
+      /> */}
     </View>
   );
 }
@@ -94,9 +93,11 @@ const styles = StyleSheet.create({
   sectionBody: {
     gap: 8,
     backgroundColor: Colors.grey80,
+    minHeight: 60,
     paddingVertical: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     alignItems: "center",
+    justifyContent: "center",
   },
 });
