@@ -13,8 +13,6 @@ export default function Index() {
     initialData: [],
   });
 
-  console.log(meals);
-
   return (
     <View
       style={{
