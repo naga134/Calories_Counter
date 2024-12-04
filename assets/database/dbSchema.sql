@@ -1,51 +1,54 @@
 -- MEALS
 CREATE TABLE IF NOT EXISTS "meals" (
     "id" INTEGER UNIQUE PRIMARY KEY NOT NULL,
-    "name" TEXT,
-    "isDeleted" INTEGER
+    "name" TEXT UNIQUE NOT NULL,
+    "isDeleted" INTEGER NOT NULL CHECK (isDeleted IN (0, 1))
 );
 -- FOODS
 CREATE TABLE IF NOT EXISTS "foods" (
     "id" INTEGER UNIQUE PRIMARY KEY NOT NULL,
-    "name" TEXT,
-    "isDeleted" INTEGER
+    "name" TEXT UNIQUE NOT NULL,
+    "isDeleted" INTEGER NOT NULL CHECK (isDeleted IN (0, 1))
 );
 -- MEASUREMENT UNITS
 CREATE TABLE IF NOT EXISTS "units" (
     "id" INTEGER UNIQUE PRIMARY KEY NOT NULL,
-    "symbol" TEXT
+    "symbol" TEXT UNIQUE NOT NULL
 );
 -- NUTRITIONAL TABLES
-CREATE TABLE IF NOT EXISTS "nutrients" (
+CREATE TABLE IF NOT EXISTS "nutritables" (
     "id" INTEGER UNIQUE PRIMARY KEY NOT NULL,
-    "foodId" INTEGER,
-    "unitId" INTEGER,
-    "baseMeasure" REAL,
-    "kcals" REAL,
-    "carbs" REAL,
-    "fats" REAL,
-    "protein" REAL,
-    "isDeleted" INTEGER,
+    "foodId" INTEGER NOT NULL,
+    "unitId" INTEGER NOT NULL,
+    -- All numerical values are not-nullable in order to enforce their correct input and/or treatment.
+    "baseMeasure" REAL NOT NULL,
+    "kcals" REAL NOT NULL,
+    "carbs" REAL NOT NULL,
+    "fats" REAL NOT NULL,
+    "protein" REAL NOT NULL,
+    "isDeleted" INTEGER NOT NULL CHECK (isDeleted IN (0, 1)),
     -- A (food's) nutritional table belongs to a food. One food can have many nutritional tables.
-    FOREIGN KEY ("foodId") REFERENCES "foods" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("foodId") REFERENCES "foods" ("id") ON DELETE CASCADE,
     -- A (food's) nutritional table "belongs" to a unit. One unit can have many nutritional tables.
-    FOREIGN KEY ("unitId") REFERENCES "units" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY ("unitId") REFERENCES "units" ("id"),
+    -- A food can have only one nutritional table per measurement unit.
+    UNIQUE (foodId, unitId)
 );
 -- ENTRIES
 CREATE TABLE IF NOT EXISTS "entries" (
     "id" INTEGER UNIQUE PRIMARY KEY NOT NULL,
-    "foodId" INTEGER,
-    "nutrientsId" INTEGER,
-    "date" TEXT,
-    "amount" REAL,
-    "unitId" INTEGER,
-    "mealId" INTEGER,
+    "foodId" INTEGER NOT NULL,
+    "nutritablesId" INTEGER NOT NULL,
+    "date" TEXT NOT NULL,
+    "amount" REAL NOT NULL,
+    "unitId" INTEGER NOT NULL,
+    "mealId" INTEGER NOT NULL,
     -- An entry belongs to a meal. One meal can have many entries.
-    FOREIGN KEY ("mealId") REFERENCES "meals" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("mealId") REFERENCES "meals" ("id"),
     -- An entry belongs to a food. One food can have many entries.
-    FOREIGN KEY ("foodId") REFERENCES "foods" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("foodId") REFERENCES "foods" ("id"),
     -- An entry belongs to a nutritional table. One nutritional table can have many entries.
-    FOREIGN KEY ("nutrientsId") REFERENCES "nutrients" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY ("nutritablesId") REFERENCES "nutritables" ("id")
 );
 -- Inserts measurement units.
 INSERT INTO units (symbol)
@@ -69,7 +72,7 @@ VALUES (1, 'Milk', 0),
     (2, 'Egg', 0),
     (3, 'Banana', 0);
 -- Inserts initial nutritional tables (for ease of development only - DELETE FOR PRODUCTION)
-INSERT INTO nutrients (
+INSERT INTO nutritables (
         foodId,
         unitId,
         baseMeasure,
@@ -85,3 +88,4 @@ VALUES -- Milk
     (2, 1, 100, 147, 0.77, 9.94, 12.58, 0),
     -- Banana
     (3, 1, 100, 89, 22.84, 0.33, 1.09, 0);
+-- TODO: CHECKS(isDeleted)!
