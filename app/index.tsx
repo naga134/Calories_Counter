@@ -1,6 +1,20 @@
+import getAllMeals from "@/database/queries/mealsQueries";
+import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
+import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import { Text, View } from "react-native";
 
 export default function Index() {
+  const database: SQLiteDatabase = useSQLiteContext();
+  const queryClient: QueryClient = useQueryClient();
+
+  const { data: meals = [] } = useQuery({
+    queryKey: ["meals"],
+    queryFn: () => getAllMeals(database),
+    initialData: [],
+  });
+
+  console.log(meals);
+
   return (
     <View
       style={{
