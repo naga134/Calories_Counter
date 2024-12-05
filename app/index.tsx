@@ -1,15 +1,17 @@
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
-import { View } from "react-native-ui-lib";
+import { Colors, View } from "react-native-ui-lib";
 import { Dimensions } from "react-native";
 
 // My stuff
 import MealDrawer from "@/components/MealDrawer";
 import getAllMeals from "@/database/queries/mealsQueries";
+import PieChart from "@/components/PieChart";
 
 export default function Index() {
   const database: SQLiteDatabase = useSQLiteContext();
   const queryClient: QueryClient = useQueryClient();
+  const screenWidth = Dimensions.get("window").width;
 
   // Retrieving the list of daily meals from the database
   const { data: meals = [] } = useQuery({
@@ -21,14 +23,14 @@ export default function Index() {
   return (
     <View
       style={{
-        gap: 16,
+        width: screenWidth,
+        flex: 1,
         justifyContent: "center",
+        // alignContent: "center",
         alignItems: "center",
       }}
     >
-      {meals.map((meal) => (
-        <MealDrawer key={meal.id} mealName={meal.name} />
-      ))}
+      <PieChart />
     </View>
   );
 }
