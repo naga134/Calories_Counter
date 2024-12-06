@@ -11,10 +11,14 @@ import { useState } from "react";
 import MacroOverview from "@/components/MacroOverview";
 import DateBanner from "@/components/DateBanner";
 import MacroListItem from "@/components/MacroListItem";
+import { useColors } from "@/context/ColorContext";
 
 export default function Index() {
   const database: SQLiteDatabase = useSQLiteContext();
   const queryClient: QueryClient = useQueryClient();
+
+  const colors = useColors();
+
   const screenWidth = Dimensions.get("window").width;
 
   // Retrieving the list of daily meals from the database
@@ -35,7 +39,7 @@ export default function Index() {
   ];
 
   const data = macronutrients.map((macro) => macro.grams);
-  const colors = [Colors.green40, Colors.red40, Colors.blue40];
+  const chartColors = [Colors.green40, Colors.red40, Colors.blue40];
 
   return (
     <>
@@ -93,7 +97,7 @@ export default function Index() {
         >
           <PieChart
             data={data}
-            colors={colors}
+            colors={chartColors}
             innerRadius={50}
             outerRadius={80}
           />

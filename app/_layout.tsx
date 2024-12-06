@@ -21,9 +21,11 @@ export default function RootLayout() {
           }}
         >
           <DateProvider>
-            <Suspense fallback={<Text>Loading...</Text>}>
-              <Stack />
-            </Suspense>
+            <ColorsProvider>
+              <Suspense fallback={<Text>Loading...</Text>}>
+                <Stack />
+              </Suspense>
+            </ColorsProvider>
           </DateProvider>
         </SQLiteProvider>
       </QueryClientProvider>
