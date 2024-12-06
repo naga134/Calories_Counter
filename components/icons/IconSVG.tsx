@@ -4,7 +4,9 @@ import Svg, { SvgProps, Path } from "react-native-svg";
 import icons from "./SVGs.json";
 
 type IconName =
-  | "calendar-solid"
+  | "calendar-1"
+  | "calendar-2"
+  | "calendar-3"
   | "plus-solid"
   | "meat-solid"
   | "wheat-solid"
