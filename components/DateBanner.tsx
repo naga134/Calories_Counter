@@ -6,15 +6,12 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 
-import { DateContext } from "@/app/_layout";
 import IconSVG from "./icons/IconSVG";
 import { formatDate } from "@/utils/formatDate";
+import { useDate } from "@/context/DateContext";
 
 export default function DateBanner() {
-  const { get: currentDate, set: setDate } = useContext(DateContext) as {
-    get: Date;
-    set: (date: Date) => void;
-  };
+  const date = useDate();
 
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
 
@@ -24,7 +21,7 @@ export default function DateBanner() {
   ) => {
     if (selectedDate) {
       setDatePickerVisible(false);
-      setDate(selectedDate);
+      date.set(selectedDate);
     }
   };
 
@@ -40,7 +37,7 @@ export default function DateBanner() {
       }}
     >
       <Text text60L white style={{ marginTop: 8 }}>
-        {formatDate(currentDate)}
+        {formatDate(date.get())}
       </Text>
       <Pressable onPress={() => setDatePickerVisible(true)}>
         <IconSVG width={40} height={40} name="calendar-2" color="white" />
@@ -49,7 +46,7 @@ export default function DateBanner() {
       {isDatePickerVisible && (
         <DateTimePicker
           testID="dateTimePicker"
-          value={currentDate}
+          value={date.get()}
           mode="date"
           onChange={handleDateChange}
         />
