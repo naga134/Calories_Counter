@@ -20,22 +20,21 @@ export default function MacroOverview({
   return (
     <Pressable
       style={{
-        backgroundColor: color,
-        borderRadius: 10,
-        padding: 8,
         flex: 1,
+        gap: 8,
+        backgroundColor: color,
+        // borderBottomLeftRadius: 12,
+        // borderBottomRightRadius: 12,
+        padding: 8,
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: "center",
       }}
       onPress={onPress}
     >
       <IconSVG color={Colors.white} width={28} name={iconName} />
-      <Text style={{ color: Colors.white, fontSize: 20, fontWeight: 700 }}>
+      <Text style={{ color: Colors.white, fontSize: 18, fontWeight: 500 }}>
         {amount}
-        <Text style={{ color: Colors.white, fontSize: 16, fontWeight: 500 }}>
-          {unit}
-        </Text>
       </Text>
     </Pressable>
   );
