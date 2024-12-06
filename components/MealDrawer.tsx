@@ -9,6 +9,7 @@ import {
 } from "react-native-ui-lib";
 
 import IconSVG from "./icons/IconSVG";
+import RotatingCaret from "./RotatingCaret";
 
 type MealDrawerProps = {
   mealName: string;
@@ -51,11 +52,11 @@ function DrawerHeader({ expanded, mealName }: DrawerHeaderProps) {
         },
       ]}
     >
-      <View />
+      <View>{/* kcals overview comes here */}</View>
       <Text grey10 text70>
         {mealName}
       </Text>
-      <View />
+      <RotatingCaret rotated={expanded} />
     </View>
   );
 }

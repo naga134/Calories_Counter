@@ -9,7 +9,8 @@ type IconName =
   | "meat-solid"
   | "wheat-solid"
   | "bacon-solid"
-  | "ball-pile-solid";
+  | "ball-pile-solid"
+  | "angle-down-solid";
 
 const IconSVG = (props: SvgProps & { name: IconName }) => {
   return (
