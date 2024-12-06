@@ -3,7 +3,13 @@ import Svg, { SvgProps, Path } from "react-native-svg";
 
 import icons from "./SVGs.json";
 
-type IconName = "calendar-solid" | "plus-solid";
+type IconName =
+  | "calendar-solid"
+  | "plus-solid"
+  | "meat-solid"
+  | "wheat-solid"
+  | "bacon-solid"
+  | "ball-pile-solid";
 
 const IconSVG = (props: SvgProps & { name: IconName }) => {
   return (
