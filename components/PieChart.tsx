@@ -23,7 +23,7 @@ export default function PieChart({
 
   return (
     <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <G transform="translate(100,100)">
+      <G transform={`translate(${outerRadius},${outerRadius})`}>
         {arcs.map((arc, index) => (
           <AnimatedArc
             key={index}
