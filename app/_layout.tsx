@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { SQLiteProvider } from "expo-sqlite";
 import { Suspense } from "react";
 import { Text } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const queryClient = new QueryClient();
 
@@ -17,7 +18,9 @@ export default function RootLayout() {
             assetId: require("@/assets/database/appDatabase.db"),
           }}
         >
-          <Stack />
+          <GestureHandlerRootView>
+            <Stack />
+          </GestureHandlerRootView>
         </SQLiteProvider>
       </QueryClientProvider>
     </Suspense>
