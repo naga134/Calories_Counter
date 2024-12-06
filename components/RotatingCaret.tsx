@@ -5,6 +5,7 @@ import Animated, {
 } from "react-native-reanimated";
 import IconSVG from "./icons/IconSVG";
 import { Colors } from "react-native-ui-lib";
+import { useEffect } from "react";
 
 interface RotatingCaretProps {
   rotated: boolean;
@@ -17,9 +18,11 @@ const RotatingCaret: React.FC<RotatingCaretProps> = ({ rotated }) => {
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
-  rotation.value = rotated
-    ? withTiming(180, { duration: 350 })
-    : withTiming(0, { duration: 350 });
+  useEffect(() => {
+    rotation.value = rotated
+      ? withTiming(180, { duration: 350 })
+      : withTiming(0, { duration: 350 });
+  }, [rotated]);
 
   return (
     <Animated.View style={animatedStyles}>
