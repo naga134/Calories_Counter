@@ -26,8 +26,8 @@ export default function RootLayout() {
               <Suspense fallback={<Text>Loading...</Text>}>
                 <Stack
                   screenOptions={{
-                    animation: "slide_from_right", // This will work for both pushing and popping
-                    gestureEnabled: true, // Enable swipe gestures for popping
+                    animation: "slide_from_right",
+                    gestureEnabled: true,
                   }}
                 />
               </Suspense>
