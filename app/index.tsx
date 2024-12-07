@@ -1,27 +1,68 @@
+import { useEffect, useState } from "react";
+import { useNavigation } from "expo-router";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Colors, Text, View } from "react-native-ui-lib";
-import { Dimensions, ScrollView, StyleSheet } from "react-native";
+import { Button, Colors, Icon, Text, View } from "react-native-ui-lib";
+import { Dimensions, Pressable, ScrollView, StyleSheet } from "react-native";
 
-// My stuff
-import MealDrawer from "@/components/MealDrawer";
-import getAllMeals from "@/database/queries/mealsQueries";
-import PieChart from "@/components/PieChart";
-import { useState } from "react";
-import MacroOverview from "@/components/MacroOverview";
-import DateBanner from "@/components/DateBanner";
-import MacroListItem from "@/components/MacroListItem";
+// Custom Hooks
 import { useColors, MacroColors } from "@/context/ColorContext";
+import { useDate } from "@/context/DateContext";
+
+// Utils
+import { formatDate } from "@/utils/formatDate";
+import getAllMeals from "@/database/queries/mealsQueries";
+
+// Components
+import PieChart from "@/components/PieChart";
+import IconSVG from "@/components/icons/IconSVG";
+import MealDrawer from "@/components/MealDrawer";
+import MacroOverview from "@/components/MacroOverview";
+import MacroListItem from "@/components/MacroListItem";
+
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 
 type MacroName = keyof MacroColors;
 
 export default function Index() {
-  const database: SQLiteDatabase = useSQLiteContext();
-  const queryClient: QueryClient = useQueryClient();
+  // SECTION 1: UI
 
   const colors = useColors();
-
   const screenWidth = Dimensions.get("window").width;
+
+  // SECTION 2: Title and Date Picker
+
+  const date = useDate();
+  const navigation = useNavigation();
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+
+  const handleDateChange = (
+    event: DateTimePickerEvent,
+    selectedDate: Date | undefined
+  ) => {
+    if (selectedDate) {
+      setDatePickerVisible(false);
+      date.set(selectedDate);
+    }
+  };
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: formatDate(date.get()),
+      headerRight: () => (
+        <Pressable onPress={() => setDatePickerVisible(true)}>
+          <IconSVG name="calendar-2" width={32} />
+        </Pressable>
+      ),
+    });
+  }, [navigation, date]);
+
+  // SECTION 3: Database Logic
+
+  const database: SQLiteDatabase = useSQLiteContext();
+  const queryClient: QueryClient = useQueryClient();
 
   // Retrieving the list of daily meals from the database
   const { data: meals = [] } = useQuery({
@@ -40,13 +81,14 @@ export default function Index() {
     { name: "carbohydrates", grams: carbohydrates },
   ];
 
-  // adding insignificant data to ensure the drawing of the graph even for empty macros
+  // Adding insignificant data to ensure the drawing of the graph even for empty macros
   const chartData = [...macronutrients.map((macro) => macro.grams), 0.0001];
   const chartColors = [
     ...macronutrients.map((macro) => colors.get(macro.name)),
     Colors.grey50,
   ];
 
+  // TODO: Make this whole thing a separate component
   const macroItems = [
     {
       color: colors.get("fat"),
@@ -80,8 +122,20 @@ export default function Index() {
     },
   ] as const;
 
+  // SECTION 4: Component itself
+
   return (
     <>
+      {/* Modal */}
+      {isDatePickerVisible && (
+        <DateTimePicker
+          testID="dateTimePicker"
+          value={date.get()}
+          mode="date"
+          onChange={handleDateChange}
+        />
+      )}
+
       <ScrollView
         contentContainerStyle={{
           width: screenWidth,
@@ -89,6 +143,7 @@ export default function Index() {
           alignItems: "center",
         }}
       >
+        {/* Top-level macronutrients' overview */}
         <View
           style={{
             flex: 1,
@@ -106,6 +161,7 @@ export default function Index() {
             />
           ))}
         </View>
+        {/* Piechart and Legend */}
         <View
           style={{
             flex: 1,
@@ -122,7 +178,7 @@ export default function Index() {
             innerRadius={50}
             outerRadius={80}
           />
-
+          {/* TODO: move this into its dedicated component for code cleanup */}
           <View style={{ flex: 1, justifyContent: "flex-end" }}>
             <MacroListItem macro="Fat" color={colors.get("fat")} />
             <MacroListItem
@@ -140,7 +196,6 @@ export default function Index() {
           ))}
         </View>
       </ScrollView>
-      <DateBanner />
     </>
   );
 }
