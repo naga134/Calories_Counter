@@ -58,7 +58,10 @@ function DrawerHeader({ expanded, mealName }: DrawerHeaderProps) {
       <Text grey10 text70>
         {mealName}
       </Text>
-      <RotatingCaret rotated={expanded} />
+      <RotatingCaret
+        rotated={expanded}
+        color={expanded ? Colors.grey50 : Colors.grey20}
+      />
     </View>
   );
 }
