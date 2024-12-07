@@ -68,14 +68,14 @@ function DrawerBody({}: DrawerBodyProps) {
     <View style={styles.sectionBody}>
       {/* Each entry COMES HERE*/}
 
-      {/* <Button
-        backgroundColor={Colors.green70}
+      <Button
+        backgroundColor={Colors.purple70}
         iconSource={() => (
-          <IconSVG name={"plus-solid"} width={16} color={Colors.green10} />
+          <IconSVG name={"plus-solid"} width={16} color={Colors.purple40} />
         )}
         round
         onPress={() => console.log("blip bloop")}
-      /> */}
+      />
     </View>
   );
 }
