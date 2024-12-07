@@ -190,7 +190,7 @@ export default function Index() {
           </View>
         </View>
 
-        <View style={{ gap: 10, padding: 10 }}>
+        <View style={{ gap: 10, paddingTop: 10, paddingBottom: 40 }}>
           {meals.map((meal) => (
             <MealDrawer key={meal.id} mealName={meal.name} />
           ))}
