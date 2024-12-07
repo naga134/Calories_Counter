@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dimensions, StyleSheet } from "react-native";
+import { Dimensions, StyleSheet, TouchableOpacity } from "react-native";
 import {
   ExpandableSection,
   Text,
@@ -10,6 +10,8 @@ import {
 
 import IconSVG from "./icons/IconSVG";
 import RotatingCaret from "./RotatingCaret";
+import { Link, useNavigation } from "expo-router";
+import { Pressable } from "react-native-gesture-handler";
 
 type MealDrawerProps = {
   mealName: string;
@@ -68,14 +70,25 @@ function DrawerBody({}: DrawerBodyProps) {
     <View style={styles.sectionBody}>
       {/* Each entry COMES HERE*/}
 
-      <Button
-        backgroundColor={Colors.purple70}
-        iconSource={() => (
-          <IconSVG name={"plus-solid"} width={16} color={Colors.purple40} />
-        )}
-        round
-        onPress={() => console.log("blip bloop")}
-      />
+      {/* Wrap link inside a touchable opacity for visual feedback */}
+      {/* Add styling to the link so it looks like a button */}
+      <Link
+        href="/FoodsList"
+        asChild
+        style={{
+          flex: 1,
+          width: 40,
+          height: 40,
+          borderRadius: 100,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: Colors.green70,
+        }}
+      >
+        <TouchableOpacity>
+          <IconSVG name={"plus-solid"} width={16} color={Colors.green40} />
+        </TouchableOpacity>
+      </Link>
     </View>
   );
 }
