@@ -11,7 +11,9 @@ import { useState } from "react";
 import MacroOverview from "@/components/MacroOverview";
 import DateBanner from "@/components/DateBanner";
 import MacroListItem from "@/components/MacroListItem";
-import { useColors } from "@/context/ColorContext";
+import { useColors, MacroColors } from "@/context/ColorContext";
+
+type MacroName = keyof MacroColors;
 
 export default function Index() {
   const database: SQLiteDatabase = useSQLiteContext();
@@ -32,14 +34,41 @@ export default function Index() {
   const [protein, setProtein] = useState(15);
   const [carbohydrates, setCarbohydrates] = useState(10);
 
-  const macronutrients = [
-    { macro: "fat", grams: fat },
-    { macro: "protein", grams: protein },
-    { macro: "carbohydrates", grams: carbohydrates },
+  const macronutrients: { name: MacroName; grams: number }[] = [
+    { name: "fat", grams: fat },
+    { name: "protein", grams: protein },
+    { name: "carbohydrates", grams: carbohydrates },
   ];
 
-  const data = macronutrients.map((macro) => macro.grams);
-  const chartColors = [Colors.green40, Colors.red40, Colors.blue40];
+  const chartData = macronutrients.map((macro) => macro.grams);
+  const chartColors = macronutrients.map((macro) => colors.get(macro.name));
+
+  const macroItems = [
+    {
+      color: colors.get("fat"),
+      iconName: "bacon-solid",
+      amount: fat,
+      unit: "g",
+    },
+    {
+      color: colors.get("carbohydrates"),
+      iconName: "wheat-solid",
+      amount: carbohydrates,
+      unit: "g",
+    },
+    {
+      color: colors.get("protein"),
+      iconName: "meat-solid",
+      amount: protein,
+      unit: "g",
+    },
+    {
+      color: colors.get("calories"),
+      iconName: "ball-pile-solid",
+      amount: fat * 8 + carbohydrates * 4 + protein * 4,
+      unit: "g",
+    },
+  ] as const;
 
   return (
     <>
@@ -56,34 +85,15 @@ export default function Index() {
             flexDirection: "row",
           }}
         >
-          <MacroOverview
-            color={Colors.green40}
-            iconName="bacon-solid"
-            onPress={() => setFat(fat + 15)}
-            amount={fat}
-            unit={"g"}
-          />
-          <MacroOverview
-            color={Colors.blue40}
-            iconName="wheat-solid"
-            onPress={() => setCarbohydrates(carbohydrates + 15)}
-            amount={carbohydrates}
-            unit={"g"}
-          />
-          <MacroOverview
-            color={Colors.red40}
-            iconName="meat-solid"
-            onPress={() => setProtein(protein + 15)}
-            amount={protein}
-            unit={"g"}
-          />
-          <MacroOverview
-            color={Colors.orange40}
-            iconName="ball-pile-solid"
-            onPress={() => {}}
-            amount={protein * 4 + fat * 8 + carbohydrates * 4}
-            unit={""}
-          />
+          {macroItems.map((macro, index) => (
+            <MacroOverview
+              key={index}
+              color={macro.color}
+              iconName={macro.iconName}
+              amount={macro.amount}
+              unit={macro.unit}
+            />
+          ))}
         </View>
         <View
           style={{
@@ -96,17 +106,20 @@ export default function Index() {
           }}
         >
           <PieChart
-            data={data}
+            data={chartData}
             colors={chartColors}
             innerRadius={50}
             outerRadius={80}
           />
 
           <View style={{ flex: 1, justifyContent: "flex-end" }}>
-            <MacroListItem macro="Fat" color={Colors.green40} />
-            <MacroListItem macro="Carbohydrates" color={Colors.blue40} />
-            <MacroListItem macro="Protein" color={Colors.red40} />
-            <MacroListItem macro="Calories" color={Colors.orange40} />
+            <MacroListItem macro="Fat" color={colors.get("fat")} />
+            <MacroListItem
+              macro="Carbohydrates"
+              color={colors.get("carbohydrates")}
+            />
+            <MacroListItem macro="Protein" color={colors.get("protein")} />
+            <MacroListItem macro="Calories" color={colors.get("calories")} />
           </View>
         </View>
 

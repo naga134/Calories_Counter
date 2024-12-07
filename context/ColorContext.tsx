@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { Colors } from "react-native-ui-lib";
 
+export type MacroColors = {
+  fat: string;
+  protein: string;
+  carbohydrates: string;
+  calories: string;
+};
+
 type ColorsContextType = {
-  get: () => {
-    fat: string;
-    protein: string;
-    carbohydrates: string;
-    calories: string;
-  };
-  set: (macro: string, color: string) => void;
+  get: (macro: keyof MacroColors) => string;
+  set: (macro: keyof MacroColors, color: string) => void;
 };
 
 type ColorsProviderProps = {
@@ -19,10 +21,10 @@ const ColorsContext = createContext<ColorsContextType | null>(null);
 
 export function ColorsProvider({ children }: ColorsProviderProps) {
   const [colors, setColors] = useState({
-    fat: Colors.green40,
-    protein: Colors.red40,
-    carbohydrates: Colors.blue40,
-    calories: Colors.orange40,
+    fat: Colors.orange40,
+    protein: Colors.green40,
+    carbohydrates: Colors.violet40,
+    calories: Colors.grey40,
   });
 
   const updateColor = (macro: string, color: string) => {
@@ -33,7 +35,12 @@ export function ColorsProvider({ children }: ColorsProviderProps) {
   };
 
   return (
-    <ColorsContext.Provider value={{ get: () => colors, set: updateColor }}>
+    <ColorsContext.Provider
+      value={{
+        get: (key) => colors[key],
+        set: updateColor,
+      }}
+    >
       {children}
     </ColorsContext.Provider>
   );

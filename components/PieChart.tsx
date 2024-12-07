@@ -20,6 +20,7 @@ export default function PieChart({
   const size = outerRadius * 2;
   // Generates the start and end angles for each arch.
   const arcs = pie().sort(null)(data);
+  console.log(arcs);
 
   return (
     <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>

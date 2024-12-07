@@ -53,7 +53,7 @@ function createArcPath(
     centerX,
     centerY,
     outerRadius,
-    endAngle
+    endAngle // decrease for padding
   );
   const innerRadiusStartAngle = polarToCartesian(
     centerX,
@@ -65,7 +65,7 @@ function createArcPath(
     centerX,
     centerY,
     innerRadius,
-    endAngle
+    endAngle // decrease for padding
   );
 
   const largeArcFlag = endAngle - startAngle <= Math.PI ? "0" : "1";
