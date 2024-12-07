@@ -21,10 +21,10 @@ const ColorsContext = createContext<ColorsContextType | null>(null);
 
 export function ColorsProvider({ children }: ColorsProviderProps) {
   const [colors, setColors] = useState({
-    fat: Colors.orange40,
-    protein: Colors.green40,
+    fat: Colors.violet50,
     carbohydrates: Colors.violet40,
-    calories: Colors.grey40,
+    protein: Colors.violet30,
+    calories: Colors.violet10,
   });
 
   const updateColor = (macro: string, color: string) => {
