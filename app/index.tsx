@@ -30,9 +30,9 @@ export default function Index() {
     initialData: [],
   });
 
-  const [fat, setFat] = useState(5);
-  const [protein, setProtein] = useState(15);
-  const [carbohydrates, setCarbohydrates] = useState(10);
+  const [fat, setFat] = useState(0);
+  const [protein, setProtein] = useState(0);
+  const [carbohydrates, setCarbohydrates] = useState(0);
 
   const macronutrients: { name: MacroName; grams: number }[] = [
     { name: "fat", grams: fat },
@@ -40,8 +40,12 @@ export default function Index() {
     { name: "carbohydrates", grams: carbohydrates },
   ];
 
-  const chartData = macronutrients.map((macro) => macro.grams);
-  const chartColors = macronutrients.map((macro) => colors.get(macro.name));
+  // adding insignificant data to ensure the drawing of the graph even for empty macros
+  const chartData = [...macronutrients.map((macro) => macro.grams), 0.0001];
+  const chartColors = [
+    ...macronutrients.map((macro) => colors.get(macro.name)),
+    Colors.grey50,
+  ];
 
   const macroItems = [
     {
@@ -49,24 +53,30 @@ export default function Index() {
       iconName: "bacon-solid",
       amount: fat,
       unit: "g",
+      // onPress: () => setFat(fat + 10),
     },
     {
       color: colors.get("carbohydrates"),
       iconName: "wheat-solid",
       amount: carbohydrates,
       unit: "g",
+      // onPress: () => setCarbohydrates(carbohydrates + 10),
     },
     {
       color: colors.get("protein"),
       iconName: "meat-solid",
       amount: protein,
       unit: "g",
+      // onPress: () => setProtein(protein + 10),
     },
     {
       color: colors.get("calories"),
       iconName: "ball-pile-solid",
       amount: fat * 8 + carbohydrates * 4 + protein * 4,
       unit: "g",
+      onPress: () => {
+        // setProtein(0), setCarbohydrates(0), setFat(0);
+      },
     },
   ] as const;
 
@@ -92,6 +102,7 @@ export default function Index() {
               iconName={macro.iconName}
               amount={macro.amount}
               unit={macro.unit}
+              // onPress={macro.onPress}
             />
           ))}
         </View>

@@ -47,25 +47,25 @@ function createArcPath(
     centerX,
     centerY,
     outerRadius,
-    startAngle
+    startAngle + 0.0001 // (***)
   );
   const outerRadiusEndAngle = polarToCartesian(
     centerX,
     centerY,
     outerRadius,
-    endAngle // decrease for padding
+    endAngle - 0.0001 // (***)
   );
   const innerRadiusStartAngle = polarToCartesian(
     centerX,
     centerY,
     innerRadius,
-    startAngle
+    startAngle + 0.0001 // (***)
   );
   const innerRadiusEndAngle = polarToCartesian(
     centerX,
     centerY,
     innerRadius,
-    endAngle // decrease for padding
+    endAngle - 0.0001 // (***)
   );
 
   const largeArcFlag = endAngle - startAngle <= Math.PI ? "0" : "1";
@@ -152,3 +152,9 @@ export default AnimatedArc;
 // (**) Think of ellipses (ovals): their arches are deformed, and not perfectly circular.
 // This is because their radius along the X and Y axes are not the same. In our case, we
 // want them to be the same (we want a perfect circle), and so we give rx and ry the same value.
+
+// (***) This is to make sure that the arc is drawn. By default, an SVG arc cannot come to
+// a close into a full circle. This is because the end angle would be the same as the starting
+// one, and thus SVG does not know what to do. By drawing 99.9999...% of a circle instead, we
+// can achieve, at least graphically, the intended result while allowing for visually meaningful
+// animations.
