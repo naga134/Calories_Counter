@@ -9,9 +9,10 @@ import { useEffect } from "react";
 
 interface RotatingCaretProps {
   rotated: boolean;
+  color: string;
 }
 
-const RotatingCaret: React.FC<RotatingCaretProps> = ({ rotated }) => {
+const RotatingCaret: React.FC<RotatingCaretProps> = ({ rotated, color }) => {
   const rotation = useSharedValue<number>(0);
 
   const animatedStyles = useAnimatedStyle(() => ({
@@ -26,11 +27,7 @@ const RotatingCaret: React.FC<RotatingCaretProps> = ({ rotated }) => {
 
   return (
     <Animated.View style={animatedStyles}>
-      <IconSVG
-        width={16}
-        name="angle-down-solid"
-        color={rotated ? Colors.grey50 : Colors.grey20}
-      />
+      <IconSVG width={16} name="angle-down-solid" color={color} />
     </Animated.View>
   );
 };
