@@ -1,11 +1,10 @@
-import IconSVG from "@/components/icons/IconSVG";
-import MealDrawer from "@/components/MealDrawer";
-import RotatingCaret from "@/components/RotatingCaret";
-import getAllFoods from "@/database/queries/foodsQueries";
-import { Food } from "@/database/types";
+import IconSVG from "components/icons/IconSVG";
+import MealDrawer from "components/MealDrawer";
+import RotatingCaret from "components/RotatingCaret";
+import getAllFoods from "database/queries/foodsQueries";
+import { Food } from "database/types";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigation } from "expo-router";
-import { navigate } from "expo-router/build/global-state/routing";
+
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
 import { TouchableOpacity } from "react-native";

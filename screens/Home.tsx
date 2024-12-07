@@ -1,32 +1,32 @@
 import { useEffect, useState } from "react";
-import { useNavigation } from "expo-router";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Colors, Icon, Text, View } from "react-native-ui-lib";
 import { Dimensions, Pressable, ScrollView, StyleSheet } from "react-native";
 
 // Custom Hooks
-import { useColors, MacroColors } from "@/context/ColorContext";
-import { useDate } from "@/context/DateContext";
+import { useColors, MacroColors } from "context/ColorContext";
+import { useDate } from "context/DateContext";
 
 // Utils
-import { formatDate } from "@/utils/formatDate";
-import getAllMeals from "@/database/queries/mealsQueries";
+import { formatDate } from "utils/formatDate";
+import getAllMeals from "database/queries/mealsQueries";
 
 // Components
-import PieChart from "@/components/PieChart";
-import IconSVG from "@/components/icons/IconSVG";
-import MealDrawer from "@/components/MealDrawer";
-import MacroOverview from "@/components/MacroOverview";
-import MacroListItem from "@/components/MacroListItem";
+import PieChart from "components/PieChart";
+import IconSVG from "components/icons/IconSVG";
+import MealDrawer from "components/MealDrawer";
+import MacroOverview from "components/MacroOverview";
+import MacroListItem from "components/MacroListItem";
 
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { useNavigation } from "@react-navigation/native";
 
 type MacroName = keyof MacroColors;
 
-export default function Index() {
+export default function Home() {
   // SECTION 1: UI
 
   const colors = useColors();
@@ -35,7 +35,7 @@ export default function Index() {
   // SECTION 2: Title and Date Picker
 
   const date = useDate();
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
 
   const handleDateChange = (
@@ -47,6 +47,8 @@ export default function Index() {
       date.set(selectedDate);
     }
   };
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     navigation.setOptions({
