@@ -79,7 +79,7 @@ function SearchBar() {
     } else {
       // If it is already expanded, run animation2 first, then animation1.
       animation2.value = withTiming(toValue, config);
-      animation1.value = withDelay(300, withTiming(toValue, config));
+      animation1.value = withDelay(500, withTiming(toValue, config));
     }
   }, [expanded, animation1, animation2]);
 
@@ -95,18 +95,26 @@ function SearchBar() {
   });
 
   const addButtonAnimatedStyle = useAnimatedStyle(() => {
-    const rotation = interpolate(animation1.value, [0, 1], [0, 360]);
+    const rotation = interpolate(animation1.value, [0, 1], [0, 180]);
 
     return {
-      right: interpolate(animation1.value, [0, 1], [8, 8 - 56]),
+      right: interpolate(animation1.value, [0, 1], [8, -48]),
       transform: [{ rotate: `${rotation}deg` }],
     };
   });
 
   const bottomBarAnimatedStyle = useAnimatedStyle(() => {
+    const borderRadius = interpolate(animation2.value, [0, 1], [0, 100]);
+
     return {
-      bottom: interpolate(animation2.value, [0, 1], [-56, 0]),
-      width: screenWidth - 16 /* padding */ - 48 /* buttonWidth */ - 8 /* gap */,
+      width: interpolate(animation2.value, [0, 1], [0, screenWidth - 16]),
+      borderTopRightRadius: borderRadius,
+      borderBottomRightRadius: borderRadius,
+      right: interpolate(
+        animation2.value,
+        [0, 1],
+        [32 /* half the button's length + padding */, 8]
+      ),
     };
   });
 
@@ -121,7 +129,7 @@ function SearchBar() {
           textAlignVertical={'center'}
           style={[styles.textField, { width: screenWidth - 104 }]}
           placeholder={'Search for a food!'}
-          placeholderTextColor={Colors.violet60}
+          placeholderTextColor={Colors.white}
         />
       </Animated.View>
       {/* Magnifying Glass Search Button */}
@@ -151,20 +159,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    backgroundColor: '#5A48F5',
-    height: 56,
-    left: 8,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Colors.violet30,
+    height: 48,
+    bottom: 8,
+    borderBottomLeftRadius: 100,
+    borderTopLeftRadius: 100,
   },
   textField: {
-    fontSize: 16,
-    color: Colors.violet80,
-    backgroundColor: Colors.violet40,
+    color: Colors.white,
+    fontSize: 18,
     height: 32,
-    marginTop: 4,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingRight: 20,
   },
   searchButton: {
     flexDirection: 'row',
@@ -173,7 +178,7 @@ const styles = StyleSheet.create({
     height: 48,
     width: 48,
     borderRadius: '100%',
-    backgroundColor: '#5A48F5',
+    backgroundColor: Colors.violet30,
   },
   addFoodButton: {
     flexDirection: 'row',
@@ -182,6 +187,6 @@ const styles = StyleSheet.create({
     height: 48,
     width: 48,
     borderRadius: '100%',
-    backgroundColor: '#5A48F5',
+    backgroundColor: Colors.violet30,
   },
 });
