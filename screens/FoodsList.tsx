@@ -89,7 +89,16 @@ function SearchBar() {
     const rotation = interpolate(animation1.value, [0, 1], [0, 360]);
 
     return {
-      right: interpolate(animation1.value, [0, 1], [screenWidth / 2 - 24, 8]),
+      right: interpolate(animation1.value, [0, 1], [64, 8]),
+      transform: [{ rotate: `${rotation}deg` }],
+    };
+  });
+
+  const addButtonAnimatedStyle = useAnimatedStyle(() => {
+    const rotation = interpolate(animation1.value, [0, 1], [0, 360]);
+
+    return {
+      right: interpolate(animation1.value, [0, 1], [8, 8 - 56]),
       transform: [{ rotate: `${rotation}deg` }],
     };
   });
@@ -126,6 +135,11 @@ function SearchBar() {
           />
         </Animated.View>
       </TouchableOpacity>
+      <TouchableOpacity>
+        <Animated.View style={[styles.addFoodButton, addButtonAnimatedStyle]}>
+          <IconSVG style={{ margin: 'auto' }} name="plus-solid" width={20} color={Colors.white} />
+        </Animated.View>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -153,6 +167,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   searchButton: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 8,
+    height: 48,
+    width: 48,
+    borderRadius: '100%',
+    backgroundColor: '#5A48F5',
+  },
+  addFoodButton: {
     flexDirection: 'row',
     position: 'absolute',
     bottom: 8,
