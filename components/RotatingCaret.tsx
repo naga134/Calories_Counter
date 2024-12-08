@@ -1,18 +1,15 @@
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
-import IconSVG from "./icons/IconSVG";
-import { Colors } from "react-native-ui-lib";
-import { useEffect } from "react";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import IconSVG from './icons/IconSVG';
+import { Colors } from 'react-native-ui-lib';
+import { useEffect } from 'react';
 
 interface RotatingCaretProps {
   rotated: boolean;
   color: string;
+  size: number;
 }
 
-const RotatingCaret: React.FC<RotatingCaretProps> = ({ rotated, color }) => {
+const RotatingCaret: React.FC<RotatingCaretProps> = ({ rotated, color, size }) => {
   const rotation = useSharedValue<number>(0);
 
   const animatedStyles = useAnimatedStyle(() => ({
@@ -27,7 +24,7 @@ const RotatingCaret: React.FC<RotatingCaretProps> = ({ rotated, color }) => {
 
   return (
     <Animated.View style={animatedStyles}>
-      <IconSVG width={16} name="angle-down-solid" color={color} />
+      <IconSVG width={size} name="angle-down-solid" color={color} />
     </Animated.View>
   );
 };

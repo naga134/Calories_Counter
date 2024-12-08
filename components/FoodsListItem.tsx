@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import RotatingCaret from 'components/RotatingCaret';
 import { Food } from 'database/types';
 import { useState } from 'react';
@@ -5,9 +6,14 @@ import { Colors, Text, TouchableOpacity, View } from 'react-native-ui-lib';
 
 export default function FoodListItem({ food }: { food: Food }) {
   const [rotated, setRotated] = useState(false);
+  const navigation = useNavigation();
 
   return (
-    <TouchableOpacity useNative onPress={() => setRotated(!rotated)}>
+    <TouchableOpacity
+      useNative
+      onPress={() => {
+        setRotated(!rotated);
+      }}>
       <View
         key={food.id}
         style={{
@@ -20,7 +26,7 @@ export default function FoodListItem({ food }: { food: Food }) {
           justifyContent: 'space-between',
         }}>
         <Text style={{ fontSize: 18 }}>{food.name}</Text>
-        <RotatingCaret rotated={rotated} color={Colors.grey20} />
+        <RotatingCaret size={16} rotated={rotated} color={Colors.grey20} />
       </View>
     </TouchableOpacity>
   );
