@@ -5,6 +5,7 @@ import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import FoodListItem from 'components/FoodsListItem';
 import { Colors, TextField, View } from 'react-native-ui-lib';
 import IconSVG from 'components/icons/IconSVG';
+import { RootStackParamList } from 'navigation/index';
 
 import Animated, {
   useAnimatedStyle,
@@ -17,8 +18,15 @@ import Animated, {
 
 import { useEffect, useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
+import { StaticScreenProps, useNavigation } from '@react-navigation/native';
+import { Meal } from 'database/types';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-export default function FoodsList() {
+type Props = StaticScreenProps<{
+  title: string;
+}>;
+
+export default function FoodsList({ route }: Props) {
   const database: SQLiteDatabase = useSQLiteContext();
   const queryClient: QueryClient = useQueryClient();
 
@@ -42,12 +50,15 @@ export default function FoodsList() {
           <FoodListItem key={food.id} food={food} />
         ))}
       </ScrollView>
-      <SearchBar />
+      <BottomBar />
     </>
   );
 }
 
-function SearchBar() {
+function BottomBar() {
+  // useNavigation<StackNavigationProp<RootStackParamList>>
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
   const [expanded, setExpanded] = useState(false);
   const screenWidth = Dimensions.get('window').width;
 
@@ -132,7 +143,7 @@ function SearchBar() {
           />
         </Animated.View>
       </TouchableOpacity>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('Create')}>
         <Animated.View style={[styles.addFoodButton, addButtonAnimatedStyle]}>
           <IconSVG style={{ margin: 'auto' }} name="plus-solid" width={20} color={Colors.white} />
         </Animated.View>

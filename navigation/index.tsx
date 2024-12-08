@@ -2,6 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { View, Text, Button, StyleSheet, Modal as RNModal } from 'react-native';
+import CreateFood from 'screens/CreateFood';
 
 import Home from 'screens/Home';
 import FoodsList from 'screens/List';
@@ -9,7 +10,7 @@ import FoodsList from 'screens/List';
 export type RootStackParamList = {
   Home: undefined;
   List: { title: string };
-  Modal: undefined;
+  Create: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -19,6 +20,11 @@ const RootStack = () => {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen
+          name="Create"
+          component={CreateFood}
+          options={{ animation: 'slide_from_right' }}
+        />
         <Stack.Screen
           name="List"
           component={FoodsList}
