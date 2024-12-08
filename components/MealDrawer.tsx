@@ -83,9 +83,9 @@ function DrawerBody({}: DrawerBodyProps) {
           borderRadius: 100,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: Colors.green70,
+          backgroundColor: Colors.violet70,
         }}>
-        <IconSVG name={'plus-solid'} width={16} color={Colors.green40} />
+        <IconSVG name={'plus-solid'} width={16} color={Colors.violet40} />
       </TouchableOpacity>
     </View>
   );
