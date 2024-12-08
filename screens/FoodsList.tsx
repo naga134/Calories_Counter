@@ -35,24 +35,13 @@ export default function FoodsList() {
         contentContainerStyle={{
           padding: 20,
           gap: 12,
-
           // Necessary to not cover the list items with the search bar
           paddingBottom: 68,
         }}>
         {foods.map((food) => (
           <FoodListItem key={food.id} food={food} />
         ))}
-        {foods.map((food) => (
-          <FoodListItem key={food.id} food={food} />
-        ))}
-        {foods.map((food) => (
-          <FoodListItem key={food.id} food={food} />
-        ))}
-        {foods.map((food) => (
-          <FoodListItem key={food.id} food={food} />
-        ))}
       </ScrollView>
-      {/* <View style={{ height: 80 }}></View> */}
       <SearchBar />
     </>
   );
