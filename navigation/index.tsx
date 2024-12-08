@@ -4,11 +4,11 @@ import React from 'react';
 import { View, Text, Button, StyleSheet, Modal as RNModal } from 'react-native';
 
 import Home from 'screens/Home';
-import FoodsList from 'screens/FoodsList';
+import FoodsList from 'screens/List';
 
 export type RootStackParamList = {
   Home: undefined;
-  FoodList: undefined;
+  List: { title: string };
   Modal: undefined;
 };
 
@@ -20,9 +20,12 @@ const RootStack = () => {
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen
-          name="FoodList"
+          name="List"
           component={FoodsList}
-          options={{ animation: 'slide_from_right' }}
+          options={({ route }) => ({
+            title: `Add to ${route.params.title}`, // Set the title dynamically
+            animation: 'slide_from_right',
+          })}
         />
       </Stack.Navigator>
       {/* Triggered from the navigation */}

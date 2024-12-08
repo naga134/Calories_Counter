@@ -18,7 +18,9 @@ type DrawerHeaderProps = {
   expanded: boolean;
 };
 
-type DrawerBodyProps = {};
+type DrawerBodyProps = {
+  mealName: string;
+};
 
 export default function MealDrawer({ mealName }: MealDrawerProps) {
   const [expanded, setExpanded] = useState(false);
@@ -28,7 +30,7 @@ export default function MealDrawer({ mealName }: MealDrawerProps) {
       expanded={expanded}
       onPress={() => setExpanded(!expanded)}
       sectionHeader={<DrawerHeader mealName={mealName} expanded={expanded} />}>
-      <DrawerBody />
+      <DrawerBody mealName={mealName} />
     </ExpandableSection>
   );
 }
@@ -63,7 +65,7 @@ function DrawerHeader({ expanded, mealName }: DrawerHeaderProps) {
 
 // This is the body for each meal's drawer.
 // It should contain: each food, its amount, its caloric total; "add food" button.
-function DrawerBody({}: DrawerBodyProps) {
+function DrawerBody({ mealName }: DrawerBodyProps) {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   return (
@@ -75,7 +77,7 @@ function DrawerBody({}: DrawerBodyProps) {
       <TouchableOpacity
         // href="/FoodsList"
         // asChild
-        onPress={() => navigation.navigate('FoodList')}
+        onPress={() => navigation.navigate('List', { title: mealName })}
         style={{
           flex: 1,
           width: 40,
