@@ -6,6 +6,7 @@ import { Colors, ExpandableSection, Text, TouchableOpacity, View } from 'react-n
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Dimensions } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 type FoodListItemProps = {
   food: Food;
@@ -22,14 +23,20 @@ export default function FoodListItem({ food, scrollViewRef, setScrollEnabled }: 
 
   const [layout, setLayout] = useState(0);
 
+  const extraPadding = useSharedValue(0);
+
   useEffect(() => {
     setScrollEnabled(!expanded);
+    extraPadding.value = withTiming(expanded ? 100 : 0, { duration: 300 }); // animate to 100 or 0 depending on expanded
   }, [expanded]);
+
+  const extraPaddingAnimation = useAnimatedStyle(() => ({ marginBottom: extraPadding.value }));
 
   // TODO: animate the expansion of the bottom padding to exclude the next element off from sight
 
   return (
-    <View
+    <Animated.View
+      style={extraPaddingAnimation}
       onLayout={(event) => {
         setLayout(event.nativeEvent.layout.y);
       }}>
@@ -39,7 +46,7 @@ export default function FoodListItem({ food, scrollViewRef, setScrollEnabled }: 
           setExpanded(!expanded);
           // Wait for the expandable section to open completely
           setTimeout(() => {
-            scrollViewRef.current?.scrollTo(layout - 12);
+            scrollViewRef.current?.scrollTo({ x: 0, y: layout - 12, animated: true });
           }, 200);
         }}
         sectionHeader={
@@ -72,6 +79,6 @@ export default function FoodListItem({ food, scrollViewRef, setScrollEnabled }: 
             height: screenHeight - headerHeight - 68 - 12 - 56, // Allows this view to take up remaining space when expanded
           }}></View>
       </ExpandableSection>
-    </View>
+    </Animated.View>
   );
 }
