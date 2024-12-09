@@ -16,7 +16,7 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import { Meal } from 'database/types';
@@ -37,9 +37,14 @@ export default function FoodsList({ route }: Props) {
     initialData: [],
   });
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+
   return (
     <>
       <ScrollView
+        ref={scrollViewRef}
+        scrollEnabled={scrollEnabled}
         contentContainerStyle={{
           padding: 20,
           gap: 12,
@@ -47,7 +52,12 @@ export default function FoodsList({ route }: Props) {
           paddingBottom: 68,
         }}>
         {foods.map((food) => (
-          <FoodListItem key={food.id} food={food} />
+          <FoodListItem
+            key={food.id}
+            food={food}
+            scrollViewRef={scrollViewRef}
+            setScrollEnabled={setScrollEnabled}
+          />
         ))}
       </ScrollView>
       <BottomBar />
