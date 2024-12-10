@@ -47,7 +47,7 @@ export default function FoodListItem({
 
   useEffect(() => {
     setScrollEnabled(!expanded);
-    extraPadding.value = withTiming(expanded ? 100 : 0, { duration: 300 }); // animate to 100 or 0 depending on expanded
+    extraPadding.value = withTiming(expanded ? 208 : 0, { duration: 300 }); // animate to 100 or 0 depending on expanded
   }, [expanded]);
 
   const extraPaddingAnimation = useAnimatedStyle(() => ({ marginBottom: extraPadding.value }));
@@ -226,7 +226,7 @@ function ReadItem() {
                   fontSize: 18,
                   borderRadius: 8,
                   height: 32,
-                  color: Colors.violet20
+                  color: Colors.violet20,
                 }}
               />
               <IconSVG
@@ -237,6 +237,7 @@ function ReadItem() {
               />
             </View>
           </View>
+          {/* wheel picker */}
           <View
             style={{
               backgroundColor: Colors.violet70,
@@ -245,6 +246,7 @@ function ReadItem() {
               position: 'relative',
               width: 'auto',
             }}>
+            {/* current choice indicator */}
             <IconSVG
               style={{
                 position: 'absolute',
@@ -256,6 +258,7 @@ function ReadItem() {
               color={Colors.violet30}
               width={28}
             />
+            {/* ruler icon */}
             <IconSVG
               style={{
                 position: 'absolute',
@@ -267,7 +270,6 @@ function ReadItem() {
               color={Colors.violet30}
               width={28}
             />
-
             <WheelPicker
               separatorsStyle={{ borderColor: Colors.violet70 }}
               flatListProps={{ style: { borderRadius: 45 } }}
