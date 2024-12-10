@@ -56,7 +56,7 @@ export default function FoodListItem({
 
   return (
     <Animated.View
-      style={extraPaddingAnimation}
+      // style={extraPaddingAnimation}
       onLayout={(event) => {
         setLayout(event.nativeEvent.layout.y);
       }}>
