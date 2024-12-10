@@ -7,6 +7,7 @@ import { useHeaderHeight } from '@react-navigation/elements';
 import { Dimensions } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import IconSVG from './icons/IconSVG';
 
 type FoodListItemProps = {
   food: Food;
@@ -71,14 +72,98 @@ export default function FoodListItem({ food, scrollViewRef, setScrollEnabled }: 
         }>
         <View
           style={{
-            backgroundColor: Colors.violet60,
+            backgroundColor: Colors.grey80,
             borderTopLeftRadius: 0,
             borderTopRightRadius: 0,
             borderBottomLeftRadius: 10,
             borderBottomRightRadius: 10,
+
             height: screenHeight - headerHeight - 68 - 12 - 56, // Allows this view to take up remaining space when expanded
-          }}></View>
+          }}>
+          <ReadItem></ReadItem>
+        </View>
       </ExpandableSection>
     </Animated.View>
+  );
+}
+
+function ReadItem() {
+  return (
+    <View
+      style={{
+        flex: 1,
+
+        justifyContent: 'flex-end',
+        padding: 20,
+        // backgroundColor: 'red'
+      }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: 48,
+            width: 48,
+            borderRadius: '100%',
+            backgroundColor: Colors.violet40,
+          }}>
+          <IconSVG
+            style={{ marginLeft: 6 }}
+            name="solid-square-list-pen"
+            width={32}
+            color={Colors.white}
+          />
+        </View>
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: 48,
+            width: 48,
+            borderRadius: '100%',
+            backgroundColor: Colors.violet40,
+          }}>
+          <IconSVG
+            style={{ marginLeft: 3 }}
+            name="solid-square-list-circle-xmark"
+            width={32}
+            color={Colors.white}
+          />
+        </View>
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: 48,
+            width: 48,
+            borderRadius: '100%',
+            backgroundColor: Colors.violet40,
+          }}>
+          <IconSVG
+            style={{ marginLeft: 3 }}
+            name="solid-square-list-circle-plus"
+            width={32}
+            color={Colors.white}
+          />
+        </View>
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: 48,
+            width: 48,
+            borderRadius: '100%',
+            backgroundColor: Colors.violet30,
+          }}>
+          <IconSVG
+            // style={{ margin: 'auto' }}
+            name="utensils-solid"
+            style={{ marginRight: 1 }}
+            width={26}
+            color={Colors.white}
+          />
+        </View>
+      </View>
+    </View>
   );
 }

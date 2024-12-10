@@ -71,12 +71,7 @@ function DrawerBody({ mealName }: DrawerBodyProps) {
   return (
     <View style={styles.sectionBody}>
       {/* Each entry COMES HERE*/}
-
-      {/* Wrap link inside a touchable opacity for visual feedback */}
-      {/* Add styling to the link so it looks like a button */}
       <TouchableOpacity
-        // href="/FoodsList"
-        // asChild
         onPress={() => navigation.navigate('List', { title: mealName })}
         style={{
           flex: 1,

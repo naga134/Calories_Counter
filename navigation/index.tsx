@@ -44,18 +44,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContainer: {
-    width: '100%',
-    height: 300, // Set the height to take up part of the screen
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-  },
+  // modalContainer: {
+  //   width: '100%',
+  //   height: 300, // Set the height to take up part of the screen
+  //   backgroundColor: 'white',
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   borderTopLeftRadius: 20,
+  //   borderTopRightRadius: 20,
+  //   padding: 20,
+  // },
 });
 
 export default RootStack;

@@ -16,7 +16,11 @@ type IconName =
   | 'square-solid'
   | 'fork-knife-solid'
   | 'magnifying-glass-solid'
-  | 'xmark-large-solid';
+  | 'xmark-large-solid'
+  | 'utensils-solid'
+  | 'solid-square-list-pen'
+  | 'solid-square-list-circle-xmark'
+  | 'solid-square-list-circle-plus';
 
 const IconSVG = (props: SvgProps & { name: IconName }) => {
   return (
