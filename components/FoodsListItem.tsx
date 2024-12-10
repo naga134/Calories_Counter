@@ -10,9 +10,10 @@ import {
   TextField,
   TouchableOpacity,
   View,
+  WheelPicker,
 } from 'react-native-ui-lib';
 
-import WheelPicker from 'react-native-wheely';
+// import WheelPicker from '@quidone/react-native-wheel-picker';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Dimensions, StyleSheet } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
@@ -139,6 +140,13 @@ function ReadItem() {
     },
   ] as const;
 
+  const data = [...Array(100).keys()].map((index) => ({
+    value: index,
+    label: index.toString(),
+  }));
+
+  const [value, setValue] = useState(0);
+
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   return (
@@ -181,7 +189,12 @@ function ReadItem() {
         </View>
       </View>
       {/* Amount and Unit section */}
-      <View style={{ justifyContent: 'center', alignItems: 'center', gap: 20 }}>
+      <View
+        style={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 20,
+        }}>
         <View style={{ position: 'relative', flexDirection: 'row', gap: 20 }}>
           {/* Amount Scale */}
           <View
@@ -213,6 +226,7 @@ function ReadItem() {
                   fontSize: 18,
                   borderRadius: 8,
                   height: 32,
+                  color: Colors.violet20
                 }}
               />
               <IconSVG
@@ -225,29 +239,54 @@ function ReadItem() {
           </View>
           <View
             style={{
-              paddingVertical: 16,
-              paddingHorizontal: 12,
-              alignItems: 'center',
               backgroundColor: Colors.violet70,
-              width: 64,
-              height: '100%',
               borderRadius: 16,
-              position: 'absolute',
-              right: -64 - 20,
+              justifyContent: 'center',
+              position: 'relative',
+              width: 'auto',
             }}>
-            <IconSVG name="ruler-triangle-solid" color={Colors.violet30} width={28} />
-            {/* this here is breaking my project */}
-            <WheelPicker
-              // flatListProps={}
+            <IconSVG
+              style={{
+                position: 'absolute',
+                zIndex: 1,
+                right: -16,
+                transform: [{ rotate: '90deg' }],
+              }}
+              name="caret-down-solid"
+              color={Colors.violet30}
+              width={28}
+            />
+            <IconSVG
+              style={{
+                position: 'absolute',
+                zIndex: 1,
+                right: -32,
+                // transform: [{ rotate: '225deg' }],
+              }}
+              name="ruler-vertical-light"
+              color={Colors.violet30}
+              width={28}
+            />
 
-              // containerStyle={{ height: 65 }}
-              visibleRest={2}
-              itemStyle={{ padding: 0 }}
-              containerStyle={{ padding: 0 }}
-              // itemHeight={24}
-              selectedIndex={selectedIndex}
-              options={['ml', 'oz', 'g']}
-              onChange={(index) => setSelectedIndex(index)}
+            <WheelPicker
+              separatorsStyle={{ borderColor: Colors.violet70 }}
+              flatListProps={{ style: { borderRadius: 45 } }}
+              activeTextColor={Colors.violet20}
+              textStyle={{ fontSize: 18 }}
+              style={{
+                borderRadius: 16,
+                backgroundColor: Colors.violet70,
+              }}
+              itemHeight={40}
+              numberOfVisibleRows={3}
+              items={[
+                { label: 'ml', value: 'ml' },
+                { label: 'oz', value: 'oz' },
+                { label: 'g', value: 'g' },
+              ]}
+              initialValue={'yes'}
+              onChange={(value) => console.log(value)}
+              faderProps={{ size: 0 }}
             />
           </View>
         </View>
