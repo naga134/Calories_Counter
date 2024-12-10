@@ -5,7 +5,9 @@ import icons from './SVGs';
 
 type IconName = keyof typeof icons;
 
-const IconSVG = (props: SvgProps & { name: IconName }) => {
+export type IconSVGProps = SvgProps & { name: IconName };
+
+const IconSVG = (props: IconSVGProps) => {
   return (
     <Svg
       viewBox={icons[props.name].viewBox}

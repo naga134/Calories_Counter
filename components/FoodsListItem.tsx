@@ -4,10 +4,11 @@ import { Food } from 'database/types';
 import { useEffect, useState } from 'react';
 import { Colors, ExpandableSection, Text, TouchableOpacity, View } from 'react-native-ui-lib';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { Dimensions } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import IconSVG from './icons/IconSVG';
+import AnimatedCircleButton from './AnimatedCircleButton';
 
 type FoodListItemProps = {
   food: Food;
@@ -97,73 +98,60 @@ function ReadItem() {
         padding: 20,
         // backgroundColor: 'red'
       }}>
+      {/* CRUD BUTTONS */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: 48,
-            width: 48,
-            borderRadius: '100%',
-            backgroundColor: Colors.violet40,
-          }}>
-          <IconSVG
-            style={{ marginLeft: 6 }}
-            name="solid-square-list-pen"
-            width={32}
-            color={Colors.white}
-          />
-        </View>
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: 48,
-            width: 48,
-            borderRadius: '100%',
-            backgroundColor: Colors.violet40,
-          }}>
-          <IconSVG
-            style={{ marginLeft: 3 }}
-            name="solid-square-list-circle-xmark"
-            width={32}
-            color={Colors.white}
-          />
-        </View>
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: 48,
-            width: 48,
-            borderRadius: '100%',
-            backgroundColor: Colors.violet40,
-          }}>
-          <IconSVG
-            style={{ marginLeft: 3 }}
-            name="solid-square-list-circle-plus"
-            width={32}
-            color={Colors.white}
-          />
-        </View>
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: 48,
-            width: 48,
-            borderRadius: '100%',
-            backgroundColor: Colors.violet30,
-          }}>
-          <IconSVG
-            // style={{ margin: 'auto' }}
-            name="utensils-solid"
-            style={{ marginRight: 1 }}
-            width={26}
-            color={Colors.white}
-          />
-        </View>
+        <AnimatedCircleButton
+          onPress={() => {}}
+          buttonStyle={styles.buttonStyle}
+          iconProps={{
+            style: { marginLeft: 6 },
+            name: 'solid-square-list-pen',
+            width: 32,
+            color: Colors.white,
+          }}
+        />
+        <AnimatedCircleButton
+          onPress={() => {}}
+          buttonStyle={styles.buttonStyle}
+          iconProps={{
+            style: { marginLeft: 3 },
+            name: 'solid-square-list-circle-xmark',
+            width: 32,
+            color: Colors.white,
+          }}
+        />
+        <AnimatedCircleButton
+          onPress={() => {}}
+          buttonStyle={styles.buttonStyle}
+          iconProps={{
+            style: { marginLeft: 3 },
+            name: 'solid-square-list-circle-plus',
+            width: 32,
+            color: Colors.white,
+          }}
+        />
+        <AnimatedCircleButton
+          onPress={() => {}}
+          buttonStyle={styles.buttonStyle}
+          iconProps={{
+            name: 'utensils-solid',
+            style: { marginRight: 1 },
+            width: 26,
+            color: Colors.white,
+          }}
+        />
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  buttonStyle: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 48,
+    width: 48,
+    borderRadius: '100%',
+    backgroundColor: Colors.violet30,
+  },
+});

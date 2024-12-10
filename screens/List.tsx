@@ -21,6 +21,7 @@ import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import { Meal } from 'database/types';
 import { StackNavigationProp } from '@react-navigation/stack';
+import AnimatedCircleButton from 'components/AnimatedCircleButton';
 
 type Props = StaticScreenProps<{
   title: string;
@@ -142,22 +143,28 @@ function BottomBar() {
           placeholderTextColor={Colors.white}
         />
       </Animated.View>
-      {/* Magnifying Glass Search Button */}
-      <TouchableOpacity onPress={() => setExpanded(!expanded)}>
-        <Animated.View style={[styles.searchButton, searchButtonAnimatedStyle]}>
-          <IconSVG
-            style={{ margin: 'auto' }}
-            name="magnifying-glass-solid"
-            width={20}
-            color={Colors.white}
-          />
-        </Animated.View>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Create')}>
-        <Animated.View style={[styles.addFoodButton, addButtonAnimatedStyle]}>
-          <IconSVG style={{ margin: 'auto' }} name="plus-solid" width={20} color={Colors.white} />
-        </Animated.View>
-      </TouchableOpacity>
+      {/* Search Button */}
+      <AnimatedCircleButton
+        onPress={() => setExpanded(!expanded)}
+        buttonStyle={[styles.searchButton, searchButtonAnimatedStyle]}
+        iconProps={{
+          style: { margin: 'auto' },
+          name: 'magnifying-glass-solid',
+          width: 20,
+          color: Colors.white,
+        }}
+      />
+      {/* Add Food Button */}
+      <AnimatedCircleButton
+        onPress={() => navigation.navigate('Create')}
+        buttonStyle={[styles.addFoodButton, addButtonAnimatedStyle]}
+        iconProps={{
+          style: { margin: 'auto' },
+          name: 'plus-solid',
+          width: 20,
+          color: Colors.white,
+        }}
+      />
     </View>
   );
 }
