@@ -1,26 +1,9 @@
 import * as React from 'react';
 import Svg, { SvgProps, Path } from 'react-native-svg';
 
-import icons from './SVGs.json';
+import icons from './SVGs';
 
-type IconName =
-  | 'calendar-1'
-  | 'calendar-2'
-  | 'calendar-3'
-  | 'plus-solid'
-  | 'meat-solid'
-  | 'wheat-solid'
-  | 'bacon-solid'
-  | 'ball-pile-solid'
-  | 'angle-down-solid'
-  | 'square-solid'
-  | 'fork-knife-solid'
-  | 'magnifying-glass-solid'
-  | 'xmark-large-solid'
-  | 'utensils-solid'
-  | 'solid-square-list-pen'
-  | 'solid-square-list-circle-xmark'
-  | 'solid-square-list-circle-plus';
+type IconName = keyof typeof icons;
 
 const IconSVG = (props: SvgProps & { name: IconName }) => {
   return (
