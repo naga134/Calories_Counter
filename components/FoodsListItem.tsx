@@ -10,11 +10,12 @@ import {
   TextField,
   TouchableOpacity,
   View,
-  WheelPicker,
 } from 'react-native-ui-lib';
+
+import WheelPicker from 'react-native-wheely';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Dimensions, StyleSheet } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import IconSVG from './icons/IconSVG';
 import AnimatedCircleButton from './AnimatedCircleButton';
@@ -22,11 +23,17 @@ import { useColors } from 'context/ColorContext';
 
 type FoodListItemProps = {
   food: Food;
-  scrollViewRef: React.RefObject<ScrollView>;
+  index: number;
+  scrollViewRef: React.RefObject<FlatList>;
   setScrollEnabled: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export default function FoodListItem({ food, scrollViewRef, setScrollEnabled }: FoodListItemProps) {
+export default function FoodListItem({
+  food,
+  index,
+  scrollViewRef: flatListRef,
+  setScrollEnabled,
+}: FoodListItemProps) {
   const [expanded, setExpanded] = useState(false);
   const navigation = useNavigation();
 
@@ -58,7 +65,7 @@ export default function FoodListItem({ food, scrollViewRef, setScrollEnabled }: 
           setExpanded(!expanded);
           // Wait for the expandable section to open completely
           setTimeout(() => {
-            scrollViewRef.current?.scrollTo({ x: 0, y: layout - 12, animated: true });
+            flatListRef.current?.scrollToIndex({ index: index, viewOffset: 12 });
           }, 200);
         }}
         sectionHeader={
@@ -131,6 +138,8 @@ function ReadItem() {
       },
     },
   ] as const;
+
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   return (
     // Whole thing
@@ -217,6 +226,7 @@ function ReadItem() {
           <View
             style={{
               paddingVertical: 16,
+              paddingHorizontal: 12,
               alignItems: 'center',
               backgroundColor: Colors.violet70,
               width: 64,
@@ -226,7 +236,19 @@ function ReadItem() {
               right: -64 - 20,
             }}>
             <IconSVG name="ruler-triangle-solid" color={Colors.violet30} width={28} />
-            {/* Wheel Picker Comes here */}
+            {/* this here is breaking my project */}
+            <WheelPicker
+              // flatListProps={}
+
+              // containerStyle={{ height: 65 }}
+              visibleRest={2}
+              itemStyle={{ padding: 0 }}
+              containerStyle={{ padding: 0 }}
+              // itemHeight={24}
+              selectedIndex={selectedIndex}
+              options={['ml', 'oz', 'g']}
+              onChange={(index) => setSelectedIndex(index)}
+            />
           </View>
         </View>
       </View>

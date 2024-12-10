@@ -1,5 +1,5 @@
 import { SQLiteDatabase } from "expo-sqlite";
-import { Food } from "@/database/types";
+import { Food } from "database/types";
 
 const query = "SELECT * FROM foods;";
 

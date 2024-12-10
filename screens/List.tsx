@@ -1,6 +1,6 @@
 import getAllFoods from 'database/queries/foodsQueries';
 import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
-import { Pressable, ScrollView } from 'react-native-gesture-handler';
+import { FlatList, Pressable, ScrollView } from 'react-native-gesture-handler';
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import FoodListItem from 'components/FoodsListItem';
 import { Colors, TextField, View } from 'react-native-ui-lib';
@@ -38,12 +38,12 @@ export default function FoodsList({ route }: Props) {
     initialData: [],
   });
 
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<FlatList>(null);
   const [scrollEnabled, setScrollEnabled] = useState(true);
 
   return (
     <>
-      <ScrollView
+      <FlatList
         ref={scrollViewRef}
         scrollEnabled={scrollEnabled}
         contentContainerStyle={{
@@ -51,16 +51,18 @@ export default function FoodsList({ route }: Props) {
           gap: 12,
           // Necessary to not cover the list items with the search bar
           paddingBottom: 68,
-        }}>
-        {foods.map((food) => (
+        }}
+        data={foods}
+        renderItem={({ item: food, index: index }) => (
           <FoodListItem
             key={food.id}
             food={food}
+            index={index}
             scrollViewRef={scrollViewRef}
             setScrollEnabled={setScrollEnabled}
           />
-        ))}
-      </ScrollView>
+        )}
+      />
       <BottomBar />
     </>
   );
