@@ -2,13 +2,23 @@ import { useNavigation } from '@react-navigation/native';
 import RotatingCaret from 'components/RotatingCaret';
 import { Food } from 'database/types';
 import { useEffect, useState } from 'react';
-import { Colors, ExpandableSection, Text, TouchableOpacity, View } from 'react-native-ui-lib';
+import {
+  Colors,
+  ExpandableSection,
+  Picker,
+  Text,
+  TextField,
+  TouchableOpacity,
+  View,
+  WheelPicker,
+} from 'react-native-ui-lib';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Dimensions, StyleSheet } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import IconSVG from './icons/IconSVG';
 import AnimatedCircleButton from './AnimatedCircleButton';
+import { useColors } from 'context/ColorContext';
 
 type FoodListItemProps = {
   food: Food;
@@ -76,10 +86,8 @@ export default function FoodListItem({ food, scrollViewRef, setScrollEnabled }: 
             backgroundColor: Colors.grey80,
             borderTopLeftRadius: 0,
             borderTopRightRadius: 0,
-            borderBottomLeftRadius: 10,
-            borderBottomRightRadius: 10,
-
-            height: screenHeight - headerHeight - 68 - 12 - 56, // Allows this view to take up remaining space when expanded
+            borderBottomLeftRadius: 32,
+            borderBottomRightRadius: 32,
           }}>
           <ReadItem></ReadItem>
         </View>
@@ -89,57 +97,192 @@ export default function FoodListItem({ food, scrollViewRef, setScrollEnabled }: 
 }
 
 function ReadItem() {
+  const colors = useColors();
+
+  const macroItems = [
+    {
+      color: colors.get('fat'),
+      iconName: 'bacon-solid',
+      amount: 0,
+      unit: 'g',
+      // onPress: () => setFat(fat + 10),
+    },
+    {
+      color: colors.get('carbohydrates'),
+      iconName: 'wheat-solid',
+      amount: 0,
+      unit: 'g',
+      // onPress: () => setCarbohydrates(carbohydrates + 10),
+    },
+    {
+      color: colors.get('protein'),
+      iconName: 'meat-solid',
+      amount: 0,
+      unit: 'g',
+      // onPress: () => setProtein(protein + 10),
+    },
+    {
+      color: colors.get('calories'),
+      iconName: 'ball-pile-solid',
+      amount: 0,
+      unit: 'g',
+      onPress: () => {
+        // setProtein(0), setCarbohydrates(0), setFat(0);
+      },
+    },
+  ] as const;
+
   return (
+    // Whole thing
     <View
       style={{
         flex: 1,
-
-        justifyContent: 'flex-end',
         padding: 20,
-        // backgroundColor: 'red'
+        gap: 20,
       }}>
-      {/* CRUD BUTTONS */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-        <AnimatedCircleButton
-          onPress={() => {}}
-          buttonStyle={styles.buttonStyle}
-          iconProps={{
-            style: { marginLeft: 6 },
-            name: 'solid-square-list-pen',
-            width: 32,
-            color: Colors.white,
-          }}
-        />
-        <AnimatedCircleButton
-          onPress={() => {}}
-          buttonStyle={styles.buttonStyle}
-          iconProps={{
-            style: { marginLeft: 3 },
-            name: 'solid-square-list-circle-xmark',
-            width: 32,
-            color: Colors.white,
-          }}
-        />
-        <AnimatedCircleButton
-          onPress={() => {}}
-          buttonStyle={styles.buttonStyle}
-          iconProps={{
-            style: { marginLeft: 3 },
-            name: 'solid-square-list-circle-plus',
-            width: 32,
-            color: Colors.white,
-          }}
-        />
-        <AnimatedCircleButton
-          onPress={() => {}}
-          buttonStyle={styles.buttonStyle}
-          iconProps={{
-            name: 'utensils-solid',
-            style: { marginRight: 1 },
-            width: 26,
-            color: Colors.white,
-          }}
-        />
+      {/* Macros Overview Section */}
+      <View
+        style={{
+          padding: 20,
+          alignItems: 'center',
+          backgroundColor: Colors.violet70,
+          borderRadius: 20,
+          justifyContent: 'space-between',
+        }}>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {macroItems.map((m, i) => (
+            // Each Macro Overview
+            <View
+              key={i}
+              style={{
+                flex: 1,
+                gap: 8,
+                backgroundColor: Colors.violet30,
+                padding: 8,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 15,
+              }}
+              // onPress={onPress}
+            >
+              <IconSVG color={Colors.white} width={28} name={m.iconName} />
+              <Text style={{ color: Colors.white, fontSize: 18, fontWeight: 500 }}>0</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+      {/* Amount and Unit section */}
+      <View style={{ justifyContent: 'center', alignItems: 'center', gap: 20 }}>
+        <View style={{ position: 'relative', flexDirection: 'row', gap: 20 }}>
+          {/* Amount Scale */}
+          <View
+            style={{
+              width: '45%',
+              padding: 20,
+              alignItems: 'center',
+              aspectRatio: 1,
+              backgroundColor: Colors.violet30,
+              borderRadius: 20,
+              justifyContent: 'space-between',
+            }}>
+            <IconSVG name="gauge-solid" color={Colors.violet70} width={32} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <IconSVG
+                style={{ transform: [{ rotate: '90deg' }] }}
+                name="caret-down-solid"
+                width={12}
+                color={Colors.violet50}
+              />
+              <TextField
+                textAlign={'center'}
+                textAlignVertical={'center'}
+                placeholderTextColor={Colors.violet30}
+                placeholder={`${0}`}
+                style={{
+                  backgroundColor: Colors.violet70,
+                  width: 72,
+                  fontSize: 18,
+                  borderRadius: 8,
+                  height: 32,
+                }}
+              />
+              <IconSVG
+                style={{ transform: [{ rotate: '-90deg' }] }}
+                name="caret-down-solid"
+                width={12}
+                color={Colors.violet50}
+              />
+            </View>
+          </View>
+          <View
+            style={{
+              paddingVertical: 16,
+              alignItems: 'center',
+              backgroundColor: Colors.violet70,
+              width: 64,
+              height: '100%',
+              borderRadius: 16,
+              position: 'absolute',
+              right: -64 - 20,
+            }}>
+            <IconSVG name="ruler-triangle-solid" color={Colors.violet30} width={28} />
+            {/* Wheel Picker Comes here */}
+          </View>
+        </View>
+      </View>
+      {/* Action buttons section */}
+      <View
+        style={{
+          justifyContent: 'center',
+          gap: 12,
+          backgroundColor: Colors.violet70,
+          paddingBottom: 12,
+          paddingTop: 12,
+
+          borderRadius: 24,
+        }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+          <AnimatedCircleButton
+            onPress={() => {}}
+            buttonStyle={styles.buttonStyle}
+            iconProps={{
+              style: { marginLeft: 6 },
+              name: 'solid-square-list-pen',
+              width: 32,
+              color: Colors.white,
+            }}
+          />
+          <AnimatedCircleButton
+            onPress={() => {}}
+            buttonStyle={styles.buttonStyle}
+            iconProps={{
+              style: { marginLeft: 3 },
+              name: 'solid-square-list-circle-xmark',
+              width: 32,
+              color: Colors.white,
+            }}
+          />
+          <AnimatedCircleButton
+            onPress={() => {}}
+            buttonStyle={styles.buttonStyle}
+            iconProps={{
+              style: { marginLeft: 3 },
+              name: 'solid-square-list-circle-plus',
+              width: 32,
+              color: Colors.white,
+            }}
+          />
+          <AnimatedCircleButton
+            onPress={() => {}}
+            buttonStyle={styles.buttonStyle}
+            iconProps={{
+              name: 'utensils-solid',
+              style: { marginRight: 1 },
+              width: 26,
+              color: Colors.white,
+            }}
+          />
+        </View>
       </View>
     </View>
   );
