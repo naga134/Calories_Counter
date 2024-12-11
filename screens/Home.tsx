@@ -154,7 +154,6 @@ export default function Home() {
               iconName={macro.iconName}
               amount={macro.amount}
               unit={macro.unit}
-              // onPress={macro.onPress}
             />
           ))}
         </View>
