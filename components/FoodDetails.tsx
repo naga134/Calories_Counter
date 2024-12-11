@@ -8,9 +8,29 @@ import { StyleSheet } from 'react-native';
 import IconSVG from './icons/IconSVG';
 import AnimatedCircleButton from './AnimatedCircleButton';
 import { useColors } from 'context/ColorContext';
+import toSQLiteParams from 'utils/toSQLiteParams';
+import getNutritables from 'database/queries/nutritablesQueries';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function FoodDetails({ food }: { food: Food }) {
   const colors = useColors();
+  const database = useSQLiteContext();
+
+  const queryClient = useQueryClient();
+
+  const { data: nutritables = [], isFetched } = useQuery({
+    queryKey: [`nutritables_${food.id}`],
+    queryFn: () => getNutritables(database, { foodId: food.id }),
+    initialData: [],
+  });
+
+  let units = nutritables.map((nutritable) => ({
+    label: nutritable.unit.symbol,
+    value: nutritable.unit.id,
+  }));
+
+  //   console.log(nutritables);
 
   const macroItems = [
     {
@@ -49,7 +69,9 @@ export default function FoodDetails({ food }: { food: Food }) {
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  return (
+  return !isFetched ? (
+    <></>
+  ) : (
     // Whole thing
     <View
       style={{
@@ -179,12 +201,8 @@ export default function FoodDetails({ food }: { food: Food }) {
               }}
               itemHeight={40}
               numberOfVisibleRows={3}
-              items={[
-                { label: 'ml', value: 'ml' },
-                { label: 'oz', value: 'oz' },
-                { label: 'g', value: 'g' },
-              ]}
-              initialValue={'yes'}
+              items={units}
+              initialValue={units[0].value}
               onChange={(value) => console.log(value)}
               faderProps={{ size: 0 }}
             />

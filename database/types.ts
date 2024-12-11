@@ -33,11 +33,14 @@ export interface Meal {
 export interface Nutritable {
     id: number;
     foodId: number;
-    unitId: number;
+    unit: {
+        id: number;
+        symbol: string;
+    };
     baseMeasure: number;
     kcals: number;
     carbs: number;
     fats: number;
     protein: number;
-    isDeleted: boolean;
+    // isDeleted: boolean;
 }

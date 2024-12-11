@@ -1,17 +1,51 @@
 import { SQLiteDatabase } from "expo-sqlite";
-import { Food } from "database/types";
+import { Nutritable } from "database/types";
+import toSQLiteParams from "utils/toSQLiteParams";
 
-const query = "SELECT * FROM foods;";
+interface queryParams {
+    foodId: number; // or string, depending on your database schema
+}
 
-const getAllFoods = async (database: SQLiteDatabase): Promise<Food[]> => {
+const query = ` 
+SELECT 
+    n.id AS id,
+    n.foodId,
+    u.id AS unitId,
+    u.symbol AS unitSymbol,
+    n.baseMeasure AS baseMeasure,
+    n.kcals,
+    n.carbs,
+    n.fats,
+    n.protein
+FROM 
+    nutrients AS n
+INNER JOIN 
+    units AS u ON n.unitId = u.id
+WHERE 
+    n.foodId = $foodId
+AND
+    n.isDeleted = 0;
+`;
+
+const getNutritables = async (database: SQLiteDatabase, params: queryParams): Promise<Nutritable[]> => {
     // Querying the database
-    const queryResult = await database.getAllAsync(query);
+    const queryResult = await database.getAllAsync(query, toSQLiteParams(params));
     // Mapping the database results to Food objects
-    return queryResult.map((row: any) => ({
-        id: row.id,
-        name: row.name,
-        isDeleted: !!row.isDeleted
+    return queryResult.map((table: any) => ({
+        // identifiers
+        id: table.id,
+        foodId: table.foodId,
+        unit: {
+            id: table.unitId,
+            symbol: table.unitSymbol,
+        },
+        // measurements
+        baseMeasure: table.baseMeasure,
+        kcals: table.kcals,
+        carbs: table.carbs,
+        fats: table.fats,
+        protein: table.protein,
     }));
 };
 
-export default getAllFoods;
+export default getNutritables;
