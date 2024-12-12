@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
-import { Food } from 'database/types';
-import { useState } from 'react';
-import { Colors, Text, TextField, View, WheelPicker } from 'react-native-ui-lib';
+import { Food, Nutritable } from 'database/types';
+import { useEffect, useState } from 'react';
+import { Colors, Icon, NumberInput, Text, TextField, View, WheelPicker } from 'react-native-ui-lib';
 
 // import WheelPicker from '@quidone/react-native-wheel-picker';
 import { StyleSheet } from 'react-native';
@@ -12,20 +12,39 @@ import toSQLiteParams from 'utils/toSQLiteParams';
 import getNutritables from 'database/queries/nutritablesQueries';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import toCapped from 'utils/toCapped';
 
-export default function FoodDetails({ food }: { food: Food }) {
+export default function FoodDetails({
+  food,
+  nutritables,
+}: {
+  food: Food;
+  nutritables: Nutritable[];
+}) {
   const colors = useColors();
   const database = useSQLiteContext();
 
   const queryClient = useQueryClient();
 
-  const { data: nutritables = [], isFetched } = useQuery({
-    queryKey: [`nutritables_${food.id}`],
-    queryFn: () => getNutritables(database, { foodId: food.id }),
-    initialData: [],
-  });
+  const [fats, setFats] = useState(0);
+  const [carbs, setCarbs] = useState(0);
+  const [kcals, setKcals] = useState(0);
+  const [protein, setProtein] = useState(0);
 
-  let units = nutritables.map((nutritable) => ({
+  const [amount, setAmount] = useState(0);
+
+  console.log(amount);
+
+  // TODO : change this to calculate based on the currently selected unit's nutritable
+
+  useEffect(() => {
+    setProtein((amount / nutritables[0].baseMeasure) * nutritables[0].protein);
+    setFats((amount / nutritables[0].baseMeasure) * nutritables[0].fats);
+    setCarbs((amount / nutritables[0].baseMeasure) * nutritables[0].carbs);
+    setKcals((amount * nutritables[0].kcals) / nutritables[0].baseMeasure);
+  }, [amount]);
+
+  const units = nutritables.map((nutritable) => ({
     label: nutritable.unit.symbol,
     value: nutritable.unit.id,
   }));
@@ -33,242 +52,266 @@ export default function FoodDetails({ food }: { food: Food }) {
   //   console.log(nutritables);
 
   const macroItems = [
-    {
-      color: colors.get('fat'),
-      iconName: 'bacon-solid',
-      amount: 0,
-      unit: 'g',
-    },
+    { color: colors.get('fat'), iconName: 'bacon-solid', amount: fats },
     {
       color: colors.get('carbohydrates'),
       iconName: 'wheat-solid',
-      amount: 0,
-      unit: 'g',
+      amount: carbs,
     },
     {
       color: colors.get('protein'),
       iconName: 'meat-solid',
-      amount: 0,
-      unit: 'g',
-    },
-    {
-      color: colors.get('calories'),
-      iconName: 'ball-pile-solid',
-      amount: 0,
-      unit: 'g',
-      onPress: () => {},
+      amount: protein,
     },
   ] as const;
 
-  const data = [...Array(100).keys()].map((index) => ({
-    value: index,
-    label: index.toString(),
-  }));
-
-  const [value, setValue] = useState(0);
-
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  return !isFetched ? (
-    <></>
-  ) : (
+  return (
     // Whole thing
-    <View
-      style={{
-        flex: 1,
-        padding: 20,
-        gap: 20,
-      }}>
-      {/* Macros Overview Section */}
-      <View
-        style={{
-          padding: 20,
-          alignItems: 'center',
-          backgroundColor: Colors.violet70,
-          borderRadius: 20,
-          justifyContent: 'space-between',
-        }}>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {macroItems.map((m, i) => (
-            // Each Macro Overview
-            <View
-              key={i}
-              style={{
-                flex: 1,
-                gap: 8,
-                backgroundColor: Colors.violet30,
-                padding: 8,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 15,
-              }}>
-              <IconSVG color={Colors.white} width={28} name={m.iconName} />
-              <Text style={{ color: Colors.white, fontSize: 18, fontWeight: 500 }}>0</Text>
-            </View>
-          ))}
-        </View>
+    <View style={styles.cardLayout}>
+      {/* TOP SECTION: Macros Overview */}
+      <View style={styles.topSection}>
+        {macroItems.map((macro, i) => (
+          <MacroQuantity key={macro.iconName} iconName={macro.iconName} amount={macro.amount} />
+        ))}
       </View>
       {/* Amount and Unit section */}
-      <View
-        style={{
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 20,
-        }}>
-        <View style={{ position: 'relative', flexDirection: 'row', gap: 20 }}>
-          {/* Amount Scale */}
-          <View
-            style={{
-              width: '45%',
-              padding: 20,
-              alignItems: 'center',
-              aspectRatio: 1,
-              backgroundColor: Colors.violet30,
-              borderRadius: 20,
-              justifyContent: 'space-between',
-            }}>
-            <IconSVG name="gauge-solid" color={Colors.violet70} width={32} />
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <IconSVG
-                style={{ transform: [{ rotate: '90deg' }] }}
-                name="caret-down-solid"
-                width={12}
-                color={Colors.violet50}
-              />
-              <TextField
-                textAlign={'center'}
-                textAlignVertical={'center'}
-                placeholderTextColor={Colors.violet30}
-                placeholder={`${0}`}
-                style={{
-                  backgroundColor: Colors.violet70,
-                  width: 72,
-                  fontSize: 18,
-                  borderRadius: 8,
-                  height: 32,
-                  color: Colors.violet20,
-                }}
-              />
-              <IconSVG
-                style={{ transform: [{ rotate: '-90deg' }] }}
-                name="caret-down-solid"
-                width={12}
-                color={Colors.violet50}
-              />
-            </View>
-          </View>
-          {/* wheel picker */}
-          <View
-            style={{
-              backgroundColor: Colors.violet70,
-              borderRadius: 16,
-              justifyContent: 'center',
-              position: 'relative',
-              width: 'auto',
-            }}>
-            {/* current choice indicator */}
-            <IconSVG
-              style={{
-                position: 'absolute',
-                zIndex: 1,
-                right: -16,
-                transform: [{ rotate: '90deg' }],
-              }}
-              name="caret-down-solid"
-              color={Colors.violet30}
-              width={28}
-            />
-            {/* ruler icon */}
-            <IconSVG
-              style={{
-                position: 'absolute',
-                zIndex: 1,
-                right: -32,
-                // transform: [{ rotate: '225deg' }],
-              }}
-              name="ruler-vertical-light"
-              color={Colors.violet30}
-              width={28}
-            />
-            <WheelPicker
-              separatorsStyle={{ borderColor: Colors.violet70 }}
-              flatListProps={{ style: { borderRadius: 45 } }}
-              activeTextColor={Colors.violet20}
-              textStyle={{ fontSize: 18 }}
-              style={{
-                borderRadius: 16,
-                backgroundColor: Colors.violet70,
-              }}
-              itemHeight={40}
-              numberOfVisibleRows={3}
-              items={units}
-              initialValue={units[0].value}
-              onChange={(value) => console.log(value)}
-              faderProps={{ size: 0 }}
-            />
-          </View>
-        </View>
+      <View style={styles.midSection}>
+        <KcalsOverview amount={kcals} />
+        <WeightScale setAmount={setAmount} />
+        <UnitPicker units={units} />
       </View>
       {/* Action buttons section */}
-      <View
-        style={{
-          justifyContent: 'center',
-          gap: 12,
-          backgroundColor: Colors.violet70,
-          paddingBottom: 12,
-          paddingTop: 12,
-
-          borderRadius: 24,
-        }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-          <AnimatedCircleButton
-            onPress={() => {}}
-            buttonStyle={styles.buttonStyle}
-            iconProps={{
-              style: { marginLeft: 6 },
-              name: 'solid-square-list-pen',
-              width: 32,
-              color: Colors.white,
-            }}
-          />
-          <AnimatedCircleButton
-            onPress={() => {}}
-            buttonStyle={styles.buttonStyle}
-            iconProps={{
-              style: { marginLeft: 3 },
-              name: 'solid-square-list-circle-xmark',
-              width: 32,
-              color: Colors.white,
-            }}
-          />
-          <AnimatedCircleButton
-            onPress={() => {}}
-            buttonStyle={styles.buttonStyle}
-            iconProps={{
-              style: { marginLeft: 3 },
-              name: 'solid-square-list-circle-plus',
-              width: 32,
-              color: Colors.white,
-            }}
-          />
-          <AnimatedCircleButton
-            onPress={() => {}}
-            buttonStyle={styles.buttonStyle}
-            iconProps={{
-              name: 'utensils-solid',
-              style: { marginRight: 1 },
-              width: 26,
-              color: Colors.white,
-            }}
-          />
-        </View>
+      <View style={styles.bottomSection}>
+        {/* EDIT NUTRITABLE BUTTON */}
+        <AnimatedCircleButton
+          onPress={() => {}}
+          buttonStyle={styles.circleButton}
+          iconProps={{
+            style: { marginLeft: 6 },
+            name: 'solid-square-list-pen',
+            width: 32,
+            color: Colors.white,
+          }}
+        />
+        {/* DELETE NUTRITABLE BUTTON */}
+        <AnimatedCircleButton
+          onPress={() => {}}
+          buttonStyle={styles.circleButton}
+          iconProps={{
+            style: { marginLeft: 3 },
+            name: 'solid-square-list-circle-xmark',
+            width: 32,
+            color: Colors.white,
+          }}
+        />
+        {/* ADD NUTRITABLE BUTTON */}
+        <AnimatedCircleButton
+          onPress={() => {}}
+          buttonStyle={styles.circleButton}
+          iconProps={{
+            style: { marginLeft: 3 },
+            name: 'solid-square-list-circle-plus',
+            width: 32,
+            color: Colors.white,
+          }}
+        />
+        {/* ADD TO MEAL BUTTON */}
+        <AnimatedCircleButton
+          onPress={() => {}}
+          buttonStyle={styles.circleButton}
+          iconProps={{
+            name: 'utensils-solid',
+            style: { marginRight: 1 },
+            width: 26,
+            color: Colors.white,
+          }}
+        />
       </View>
     </View>
   );
 }
 
+function KcalsOverview({ amount }: { amount: number }) {
+  return (
+    <View
+      style={{
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: Colors.violet70,
+        width: 68,
+        borderRadius: 16,
+      }}>
+      <IconSVG name="ball-pile-solid" color={Colors.violet30} style={{ marginBottom: 8 }} />
+      <Text style={{ color: Colors.violet30, fontSize: 18, fontWeight: 500 }}>
+        {amount.toFixed(0)}
+      </Text>
+      <Text style={{ color: Colors.violet30, fontSize: 18, fontWeight: 500 }}>kcal</Text>
+    </View>
+  );
+}
+
+function UnitPicker({ units }) {
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: Colors.violet70,
+        borderRadius: 16,
+        justifyContent: 'center',
+        position: 'relative',
+        //   width: 68,
+      }}>
+      {/* current choice indicator */}
+      <IconSVG
+        style={{
+          position: 'absolute',
+          zIndex: 1,
+          right: -16,
+          transform: [{ rotate: '90deg' }],
+        }}
+        name="caret-down-solid"
+        color={Colors.violet30}
+        width={28}
+      />
+      {/* ruler icon */}
+      <IconSVG
+        style={{
+          position: 'absolute',
+          zIndex: 1,
+          right: -32,
+        }}
+        name="ruler-vertical-light"
+        color={Colors.violet30}
+        width={28}
+      />
+      <WheelPicker
+        separatorsStyle={{ borderColor: Colors.violet70 }}
+        flatListProps={{ style: { borderRadius: 45 } }}
+        activeTextColor={Colors.violet20}
+        textStyle={{ fontSize: 18 }}
+        style={{
+          borderRadius: 16,
+          backgroundColor: Colors.violet70,
+        }}
+        itemHeight={40}
+        numberOfVisibleRows={3}
+        items={units}
+        initialValue={units[0].value}
+        onChange={(value) => console.log(value)}
+        faderProps={{ size: 0 }}
+      />
+    </View>
+  );
+}
+
+// change later: use TextInput instead to limit max characters
+function WeightScale({ setAmount }) {
+  return (
+    <View style={styles.weightScale}>
+      <IconSVG name="gauge-solid" color={Colors.violet70} width={32} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <IconSVG
+          style={{ transform: [{ rotate: '90deg' }] }}
+          name="caret-down-solid"
+          width={12}
+          color={Colors.violet50}
+        />
+        {/* TODO: limit the amount of digits accepted */}
+        {/* suggestion: use TextInput instead: https://www.ifelsething.com/post/limit-text-length-react-native-text-input/ */}
+        {/* and customize the onChangeText function */}
+        <NumberInput
+          onChangeNumber={(number) => {
+            if (number.type === 'valid') {
+              setAmount(number.number);
+            }
+          }}
+          fractionDigits={2}
+          // TODO: handle text overflow
+          containerStyle={{
+            backgroundColor: Colors.violet70,
+            width: 80,
+            borderRadius: 8,
+            height: 32,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+          textFieldProps={{
+            style: {
+              color: Colors.violet20,
+              fontSize: 18,
+            },
+          }}
+        />
+        <IconSVG
+          style={{ transform: [{ rotate: '-90deg' }] }}
+          name="caret-down-solid"
+          width={12}
+          color={Colors.violet50}
+        />
+      </View>
+    </View>
+  );
+}
+
+function MacroQuantity({
+  amount,
+  iconName,
+}: {
+  amount: number;
+  iconName: 'bacon-solid' | 'wheat-solid' | 'meat-solid' | 'ball-pile-solid';
+}) {
+  return (
+    <View style={styles.macroQuantity}>
+      {/* Macronutrient's icon */}
+      <IconSVG color={Colors.white} width={28} name={iconName} />
+      {/* Macronutrient's amount */}
+      <Text
+        white
+        style={{
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: 500,
+        }}>
+        {toCapped(amount, 2)}g
+      </Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  buttonStyle: {
+  // The entire container
+  cardLayout: {
+    flex: 1,
+    paddingHorizontal: 32,
+    paddingVertical: 20,
+    gap: 12,
+  },
+  // The flexbox that holds the action buttons
+  bottomSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    gap: 12,
+    paddingHorizontal: 20,
+    backgroundColor: Colors.violet70,
+    paddingBottom: 12,
+    paddingTop: 12,
+    borderRadius: 24,
+  },
+  // The flexbox that holds each macro's quantity indicator
+
+  // Each macro's quantity indicator
+  macroQuantity: {
+    flex: 1,
+    gap: 8,
+    backgroundColor: Colors.violet30,
+    padding: 8,
+    paddingTop: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 15,
+  },
+  // Each circular button
+  circleButton: {
     justifyContent: 'center',
     alignItems: 'center',
     height: 48,
@@ -276,4 +319,23 @@ const styles = StyleSheet.create({
     borderRadius: '100%',
     backgroundColor: Colors.violet30,
   },
+  //
+  weightScale: {
+    flex: 1,
+    flexGrow: 1.5,
+    padding: 20,
+    alignItems: 'center',
+    aspectRatio: 1,
+    backgroundColor: Colors.violet30,
+    borderRadius: 20,
+    justifyContent: 'space-between',
+  },
+  //
+  midSection: {
+    position: 'relative',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  topSection: { flexDirection: 'row', gap: 8 },
 });

@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import RotatingCaret from 'components/RotatingCaret';
-import { Food } from 'database/types';
+import { Food, Nutritable } from 'database/types';
 import { useEffect, useState } from 'react';
 import {
   Colors,
@@ -22,6 +22,9 @@ import IconSVG from './icons/IconSVG';
 import AnimatedCircleButton from './AnimatedCircleButton';
 import { useColors } from 'context/ColorContext';
 import FoodDetails from './FoodDetails';
+import getNutritables from 'database/queries/nutritablesQueries';
+import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+import { useQuery } from '@tanstack/react-query';
 
 type FoodListItemProps = {
   food: Food;
@@ -36,6 +39,17 @@ export default function FoodListItem({
   scrollViewRef: flatListRef,
   setScrollEnabled,
 }: FoodListItemProps) {
+  // Fetching
+  const database: SQLiteDatabase = useSQLiteContext();
+
+  const { data: nutritables = [], isFetched } = useQuery({
+    queryKey: [`nutritables_${food.id}`],
+    queryFn: () => getNutritables(database, { foodId: food.id }),
+    initialData: [],
+  });
+
+  // TODO: Apply loading effect while data is loading
+
   const [expanded, setExpanded] = useState(false);
   const navigation = useNavigation();
 
@@ -64,7 +78,7 @@ export default function FoodListItem({
           }, 200);
         }}
         sectionHeader={<ExpandableSectionHeader food={food} expanded={expanded} />}>
-        <ExpandableSectionBody food={food} />
+        {!isFetched ? <></> : <ExpandableSectionBody food={food} nutritables={nutritables} />}
       </ExpandableSection>
     </Animated.View>
   );
@@ -87,10 +101,10 @@ function ExpandableSectionHeader({ food, expanded }: { food: Food; expanded: boo
   );
 }
 
-function ExpandableSectionBody({ food }: { food: Food }) {
+function ExpandableSectionBody({ food, nutritables }: { food: Food; nutritables: Nutritable[] }) {
   return (
     <View style={styles.cardBackground}>
-      <FoodDetails food={food} />
+      <FoodDetails food={food} nutritables={nutritables} />
     </View>
   );
 }
