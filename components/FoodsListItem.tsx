@@ -46,6 +46,7 @@ export default function FoodListItem({
     queryKey: [`nutritables_${food.id}`],
     queryFn: () => getNutritables(database, { foodId: food.id }),
     initialData: [],
+    enabled: food.id != null,
   });
 
   // TODO: Apply loading effect while data is loading

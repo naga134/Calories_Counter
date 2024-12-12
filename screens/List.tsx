@@ -14,11 +14,12 @@ import Animated, {
   interpolate,
   Easing,
   withDelay,
+  cancelAnimation,
 } from 'react-native-reanimated';
 
 import { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
-import { StaticScreenProps, useNavigation } from '@react-navigation/native';
+import { StackActions, StaticScreenProps, useNavigation } from '@react-navigation/native';
 import { Meal } from 'database/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AnimatedCircleButton from 'components/AnimatedCircleButton';
@@ -29,10 +30,9 @@ type Props = StaticScreenProps<{
 
 export default function FoodsList({ route }: Props) {
   const database: SQLiteDatabase = useSQLiteContext();
-  const queryClient: QueryClient = useQueryClient();
 
   // Retrieving the list of daily meals from the database
-  const { data: foods = [] } = useQuery({
+  const { data: foods = [], isFetched } = useQuery({
     queryKey: ['foods'],
     queryFn: () => getAllFoods(database),
     initialData: [],
@@ -40,6 +40,8 @@ export default function FoodsList({ route }: Props) {
 
   const scrollViewRef = useRef<FlatList>(null);
   const [scrollEnabled, setScrollEnabled] = useState(true);
+
+  // Apply LOADING effect while data is fetching or refetching
 
   return (
     <>
@@ -52,10 +54,10 @@ export default function FoodsList({ route }: Props) {
           // Necessary to not cover the list items with the search bar
           paddingBottom: 68,
         }}
+        keyExtractor={(item, index) => (item.id ? item.id.toString() : index)}
         data={foods}
         renderItem={({ item: food, index: index }) => (
           <FoodListItem
-            key={food.id}
             food={food}
             index={index}
             scrollViewRef={scrollViewRef}
@@ -95,6 +97,14 @@ function BottomBar() {
       animation1.value = withDelay(500, withTiming(toValue, config));
     }
   }, [expanded, animation1, animation2]);
+
+  useEffect(() => {
+    return () => {
+      // Cancel the animation to prevent it from running after unmount
+      cancelAnimation(animation1);
+      cancelAnimation(animation2);
+    };
+  }, []);
 
   // Constructing animated styles:
 

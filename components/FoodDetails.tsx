@@ -11,7 +11,6 @@ import { useColors } from 'context/ColorContext';
 import toSQLiteParams from 'utils/toSQLiteParams';
 import getNutritables from 'database/queries/nutritablesQueries';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toCapped from 'utils/toCapped';
 
 export default function FoodDetails({
@@ -22,9 +21,6 @@ export default function FoodDetails({
   nutritables: Nutritable[];
 }) {
   const colors = useColors();
-  const database = useSQLiteContext();
-
-  const queryClient = useQueryClient();
 
   const [fats, setFats] = useState(0);
   const [carbs, setCarbs] = useState(0);
@@ -32,8 +28,6 @@ export default function FoodDetails({
   const [protein, setProtein] = useState(0);
 
   const [amount, setAmount] = useState(0);
-
-  console.log(amount);
 
   // TODO : change this to calculate based on the currently selected unit's nutritable
 
@@ -48,8 +42,6 @@ export default function FoodDetails({
     label: nutritable.unit.symbol,
     value: nutritable.unit.id,
   }));
-
-  //   console.log(nutritables);
 
   const macroItems = [
     { color: colors.get('fat'), iconName: 'bacon-solid', amount: fats },
