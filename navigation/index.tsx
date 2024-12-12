@@ -1,4 +1,5 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { HeaderBackButton } from '@react-navigation/elements';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { View, Text, Button, StyleSheet, Modal as RNModal } from 'react-native';
@@ -9,8 +10,10 @@ import FoodsList from 'screens/List';
 
 export type RootStackParamList = {
   Home: undefined;
-  List: { title: string };
-  Create: undefined;
+  List: { title: string }; // List existing foods
+  Create: undefined; // Crate new food
+  Add: undefined; // Add nutritional table
+  Edit: undefined; // Edit nutritional table
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -21,11 +24,6 @@ const RootStack = () => {
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen
-          name="Create"
-          component={CreateFood}
-          options={{ animation: 'slide_from_right' }}
-        />
-        <Stack.Screen
           name="List"
           component={FoodsList}
           options={({ route }) => ({
@@ -33,11 +31,39 @@ const RootStack = () => {
             animation: 'slide_from_right',
           })}
         />
+        <Stack.Screen
+          name="Create"
+          component={CreateFood}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="Add"
+          component={() => <></>}
+          // TODO: - pass food and existing nutritables as parameters
+          // - set title dynamically: "Add nutritional table to [foodname]
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="Edit"
+          component={() => <></>}
+          // TODO: - pass food and existing nutritables as parameters
+          // - set title dynamically: "Edit [foodname]'s nutritional table
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
       </Stack.Navigator>
       {/* Triggered from the navigation */}
     </NavigationContainer>
   );
 };
+{
+  /* <ScreenStackHeaderBackButtonImage */
+}
 
 const styles = StyleSheet.create({
   overlay: {

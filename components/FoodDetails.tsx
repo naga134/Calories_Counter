@@ -20,6 +20,7 @@ export default function FoodDetails({
   food: Food;
   nutritables: Nutritable[];
 }) {
+  const navigation = useNavigation();
   const colors = useColors();
 
   const [fats, setFats] = useState(0);
@@ -76,7 +77,7 @@ export default function FoodDetails({
       <View style={styles.bottomSection}>
         {/* EDIT NUTRITABLE BUTTON */}
         <AnimatedCircleButton
-          onPress={() => {}}
+          onPress={() => navigation.navigate('Edit')}
           buttonStyle={styles.circleButton}
           iconProps={{
             style: { marginLeft: 6 },
@@ -98,7 +99,7 @@ export default function FoodDetails({
         />
         {/* ADD NUTRITABLE BUTTON */}
         <AnimatedCircleButton
-          onPress={() => {}}
+          onPress={() => navigation.navigate('Add')}
           buttonStyle={styles.circleButton}
           iconProps={{
             style: { marginLeft: 3 },
