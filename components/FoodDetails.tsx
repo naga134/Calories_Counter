@@ -77,8 +77,8 @@ export default function FoodDetails({
           showIcon
           showIndicator
           backgroundColor={Colors.violet70}
-          activeTextColor={Colors.violet50}
-          inactiveTextColor={Colors.violet20}
+          activeTextColor={Colors.violet20}
+          inactiveTextColor={Colors.violet50}
         />
       </View>
       {/* Action buttons section */}
