@@ -3,7 +3,9 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { View, Text, Button, StyleSheet, Modal as RNModal } from 'react-native';
-import CreateFood from 'screens/CreateFood';
+import Add from 'screens/Add';
+import Create from 'screens/Create';
+import Edit from 'screens/Edit';
 
 import Home from 'screens/Home';
 import FoodsList from 'screens/List';
@@ -33,14 +35,15 @@ const RootStack = () => {
         />
         <Stack.Screen
           name="Create"
-          component={CreateFood}
+          component={Create}
           options={{
+            title: 'Create food',
             animation: 'slide_from_right',
           }}
         />
         <Stack.Screen
           name="Add"
-          component={() => <></>}
+          component={Add}
           // TODO: - pass food and existing nutritables as parameters
           // - set title dynamically: "Add nutritional table to [foodname]
           options={{
@@ -49,7 +52,7 @@ const RootStack = () => {
         />
         <Stack.Screen
           name="Edit"
-          component={() => <></>}
+          component={Edit}
           // TODO: - pass food and existing nutritables as parameters
           // - set title dynamically: "Edit [foodname]'s nutritional table
           options={{
