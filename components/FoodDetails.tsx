@@ -12,6 +12,7 @@ import toSQLiteParams from 'utils/toSQLiteParams';
 import getNutritables from 'database/queries/nutritablesQueries';
 import { useSQLiteContext } from 'expo-sqlite';
 import toCapped from 'utils/toCapped';
+import UnitPicker from './UnitPicker';
 
 export default function FoodDetails({
   food,
@@ -71,7 +72,14 @@ export default function FoodDetails({
       <View style={styles.midSection}>
         <KcalsOverview amount={kcals} />
         <WeightScale setAmount={setAmount} />
-        <UnitPicker units={units} />
+        <UnitPicker
+          units={units}
+          showIcon
+          showIndicator
+          backgroundColor={Colors.violet70}
+          activeTextColor={Colors.violet50}
+          inactiveTextColor={Colors.violet20}
+        />
       </View>
       {/* Action buttons section */}
       <View style={styles.bottomSection}>
@@ -139,60 +147,6 @@ function KcalsOverview({ amount }: { amount: number }) {
         {amount.toFixed(0)}
       </Text>
       <Text style={{ color: Colors.violet30, fontSize: 18, fontWeight: 500 }}>kcal</Text>
-    </View>
-  );
-}
-
-function UnitPicker({ units }) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: Colors.violet70,
-        borderRadius: 16,
-        justifyContent: 'center',
-        position: 'relative',
-        //   width: 68,
-      }}>
-      {/* current choice indicator */}
-      <IconSVG
-        style={{
-          position: 'absolute',
-          zIndex: 1,
-          right: -16,
-          transform: [{ rotate: '90deg' }],
-        }}
-        name="caret-down-solid"
-        color={Colors.violet30}
-        width={28}
-      />
-      {/* ruler icon */}
-      <IconSVG
-        style={{
-          position: 'absolute',
-          zIndex: 1,
-          right: -32,
-        }}
-        name="ruler-vertical-light"
-        color={Colors.violet30}
-        width={28}
-      />
-      <WheelPicker
-        separatorsStyle={{ borderColor: Colors.violet70 }}
-        flatListProps={{ style: { borderRadius: 45 } }}
-        activeTextColor={Colors.violet20}
-        textStyle={{ fontSize: 18 }}
-        style={{
-          borderRadius: 16,
-          backgroundColor: Colors.violet70,
-        }}
-        itemHeight={40}
-        numberOfVisibleRows={3}
-        items={units}
-        initialValue={units[0].value}
-        onChange={(value) => console.log(value)}
-        faderProps={{ size: 0 }}
-      />
     </View>
   );
 }
