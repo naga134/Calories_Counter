@@ -89,7 +89,6 @@ export default function Create() {
             maxHeight: 52,
             alignItems: 'center',
             justifyContent: 'center',
-            // paddingHorizontal: 60,
           }}>
           {/* Name Input Field */}
           <TextInput
@@ -106,7 +105,6 @@ export default function Create() {
             placeholder="New Food"
             placeholderTextColor={Colors.violet40}
           />
-          {/* <Text >New Food</Text> */}
           <IconSVG
             style={{ position: 'absolute', right: 12 }}
             name="feather-pointed-solid"
@@ -150,7 +148,6 @@ export default function Create() {
               </View>
             )}
           />
-          {/* <View style={{ flex: 1, backgroundColor: 'pink', maxHeight: 40 }}></View> */}
           {/* Macros & Unit BOX*/}
           <View
             style={{
@@ -240,7 +237,6 @@ export default function Create() {
                   key={index}
                   style={{
                     flexDirection: 'row',
-                    // justifyContent: 'center',
                     alignItems: 'center',
                     paddingHorizontal: 16,
                     gap: 12,
@@ -268,22 +264,6 @@ export default function Create() {
                 </View>
               ))}
             </ScrollView>
-            {/* <View
-            style={{
-              // flex: 1,
-              // maxHeight: '50%',
-              backgroundColor: Colors.violet70,
-              // justifyContent: 'flex-end',
-              borderRadius: 16,
-              padding: 20,
-            }}>
-            <Text grey10 style={{ textAlign: 'justify', fontSize: 16 }}>
-              Each <Text violet30>{selectedUnit.symbol}</Text> of{' '}
-              <Text violet30>{name === '' ? '<food_name>' : name}</Text> contains:
-              <Text violet30>0.00kcal</Text>, <Text violet30>0.00g</Text> of protein,{' '}
-              <Text violet30>0.00g</Text> of carbohydrates and <Text violet30>0.00g</Text> of fat.
-            </Text>
-          </View> */}
             {/* "Create" Button */}
             <Button
               style={{
