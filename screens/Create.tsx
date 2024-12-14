@@ -23,8 +23,6 @@ export default function Create() {
     initialData: [],
   });
 
-  console.log(names);
-
   const [pickerValue, setPickerValue] = useState('a');
 
   const screenWidth = Dimensions.get('window').width;
@@ -59,7 +57,10 @@ export default function Create() {
           justifyContent: 'center',
           // paddingHorizontal: 60,
         }}>
+        {/* Name Input Field */}
         <TextInput
+          value={foodName}
+          onChangeText={(text) => setFoodName(text)}
           textAlign="center"
           style={{
             color: 'white',
@@ -198,9 +199,9 @@ export default function Create() {
             }}>
             <Text grey10 style={{ textAlign: 'justify', fontSize: 16 }}>
               Each <Text violet30>{selectedUnit.label}</Text> of{' '}
-              <Text violet30>{'<food_name>'}</Text> contains <Text violet30>0.00kcal</Text>,{' '}
-              <Text violet30>0.00g</Text> of protein, <Text violet30>0.00g</Text> of carbohydrates
-              and <Text violet30>0.00g</Text> of fat.
+              <Text violet30>{foodName === '' ? '<food_name>' : foodName}</Text> contains{' '}
+              <Text violet30>0.00kcal</Text>, <Text violet30>0.00g</Text> of protein,{' '}
+              <Text violet30>0.00g</Text> of carbohydrates and <Text violet30>0.00g</Text> of fat.
             </Text>
           </View>
           {/* "Create" Button */}
