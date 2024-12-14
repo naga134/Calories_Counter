@@ -8,6 +8,7 @@ interface CustomNumberInputProps {
   value: string;
   setValue: React.Dispatch<React.SetStateAction<string>>;
   maxLength?: number;
+  placeholder: string;
 }
 
 export default function CustomNumberInput({
@@ -15,6 +16,7 @@ export default function CustomNumberInput({
   value,
   setValue,
   maxLength = 7,
+  placeholder,
 }: CustomNumberInputProps) {
   // Using useMemo to prevent the regex object from being recreated at every render
   const dynamicRegex = useMemo(() => {
@@ -26,7 +28,7 @@ export default function CustomNumberInput({
     <TextInput
       style={style}
       keyboardType="number-pad"
-      placeholder="0.00"
+      placeholder={placeholder}
       placeholderTextColor={Colors.grey40}
       maxLength={maxLength}
       value={value}

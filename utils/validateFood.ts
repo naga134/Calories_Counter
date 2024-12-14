@@ -49,9 +49,8 @@ export const validateFoodInputs = (
     if (Math.abs(expectedKcals - Number(kcals)) > margin) {
         errors.push({
             errorType: 'warning',
-            errorMessage: `The total kcals differ from the expected value based on the provided macros.`,
+            errorMessage: `Total calories and macros mismatch.`,
         });
     }
-
     return errors;
 };
