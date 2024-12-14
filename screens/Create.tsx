@@ -9,6 +9,8 @@ import { Button, Colors, Text, TextArea, View } from 'react-native-ui-lib';
 import IconSVG from 'components/icons/IconSVG';
 import RotatingCaret from 'components/RotatingCaret';
 import UnitPicker from 'components/UnitPicker';
+import { TextInput } from 'react-native-gesture-handler';
+import CustomNumberInput from 'components/CustomNumberInput';
 
 export default function Create() {
   const database = useSQLiteContext();
@@ -37,6 +39,13 @@ export default function Create() {
 
   const [selectedUnit, setSelectedUnit] = useState(units[0]);
 
+  const [foodName, setFoodName] = useState('');
+  const [measure, setMeasure] = useState('');
+  const [kcals, setKcals] = useState('');
+  const [protein, setProtein] = useState('');
+  const [carbs, setCarbs] = useState('');
+  const [fat, setFat] = useState('');
+
   return (
     <>
       {/* Name banner */}
@@ -48,9 +57,21 @@ export default function Create() {
           maxHeight: 52,
           alignItems: 'center',
           justifyContent: 'center',
-          paddingHorizontal: 60,
+          // paddingHorizontal: 60,
         }}>
-        <Text style={{ color: 'white', fontSize: 20 }}>New Food</Text>
+        <TextInput
+          textAlign="center"
+          style={{
+            color: 'white',
+            fontSize: 20,
+            flex: 1,
+            width: '100%',
+            paddingHorizontal: 60,
+          }}
+          placeholder="New Food"
+          placeholderTextColor={Colors.violet40}
+        />
+        {/* <Text >New Food</Text> */}
         <IconSVG
           style={{ position: 'absolute', right: 12 }}
           name="feather-pointed-solid"
@@ -60,23 +81,29 @@ export default function Create() {
       <View style={{ flex: 1, gap: 12, padding: 20 }}>
         {/* Base Measure */}
         <MacroInputField
+          value={measure ?? ''}
+          setValue={setMeasure}
+          maxLength={7}
           opticallyAdjustText
           iconName={'scale-unbalanced-solid'}
           unitSymbol={selectedUnit.label}
           renderUnitIndicator={(unitSymbol) => (
             <View style={styles.specialInputFieldUnitIndicator}>
-              <Text style={styles.inputFieldText}>{unitSymbol}</Text>
+              <Text style={styles.inputFieldUnitIndicatorText}>{unitSymbol}</Text>
             </View>
           )}
         />
         {/* Calories */}
         <MacroInputField
+          value={kcals ?? ''}
+          setValue={setKcals}
+          maxLength={9}
           opticallyAdjustText
           iconName={'ball-pile-solid'}
           unitSymbol={'kcal'}
           renderUnitIndicator={(unitSymbol) => (
             <View style={styles.specialInputFieldUnitIndicator}>
-              <Text style={styles.inputFieldText}>{unitSymbol}</Text>
+              <Text style={styles.inputFieldUnitIndicatorText}>{unitSymbol}</Text>
             </View>
           )}
         />
@@ -92,11 +119,26 @@ export default function Create() {
           {/* Macros BOX */}
           <View style={{ flex: 1, gap: 12, justifyContent: 'space-between' }}>
             {/* Fat */}
-            <MacroInputField iconName={'bacon-solid'} unitSymbol={'g'} />
+            <MacroInputField
+              value={fat ?? ''}
+              setValue={setFat}
+              iconName={'bacon-solid'}
+              unitSymbol={'g'}
+            />
             {/* Carbs */}
-            <MacroInputField iconName={'wheat-solid'} unitSymbol={'g'} />
+            <MacroInputField
+              value={carbs ?? ''}
+              setValue={setCarbs}
+              iconName={'wheat-solid'}
+              unitSymbol={'g'}
+            />
             {/* Protein */}
-            <MacroInputField iconName={'meat-solid'} unitSymbol={'g'} />
+            <MacroInputField
+              value={protein ?? ''}
+              setValue={setProtein}
+              iconName={'meat-solid'}
+              unitSymbol={'g'}
+            />
           </View>
           {/* Unit BOX*/}
           <View
@@ -132,7 +174,9 @@ export default function Create() {
                 units={units}
                 flipIndicator
                 showIndicator
-                onChange={(value) => setSelectedUnit(units.find((unit) => unit.value === value))}
+                onChange={(unitId: number) =>
+                  setSelectedUnit(units.find((unit) => unit.value === unitId))
+                }
                 backgroundColor={Colors.grey60}
                 activeTextColor={Colors.violet30}
                 inactiveTextColor={Colors.grey40}
@@ -153,9 +197,10 @@ export default function Create() {
               padding: 20,
             }}>
             <Text grey10 style={{ textAlign: 'justify', fontSize: 16 }}>
-              Each <Text violet30>{selectedUnit.label}</Text> of <Text violet30>FOOD_NAME</Text>{' '}
-              contains <Text violet30>0.00kcal</Text>, <Text violet30>0.00g</Text> of protein,{' '}
-              <Text violet30>0.00g</Text> of carbohydrates and <Text violet30>0.00g</Text> of fat.
+              Each <Text violet30>{selectedUnit.label}</Text> of{' '}
+              <Text violet30>{'<food_name>'}</Text> contains <Text violet30>0.00kcal</Text>,{' '}
+              <Text violet30>0.00g</Text> of protein, <Text violet30>0.00g</Text> of carbohydrates
+              and <Text violet30>0.00g</Text> of fat.
             </Text>
           </View>
           {/* "Create" Button */}
@@ -168,11 +213,14 @@ export default function Create() {
 
 const DefaultUnitIndicator: React.FC<{ unitSymbol: string }> = ({ unitSymbol }) => (
   <View style={styles.inputFieldUnitIndicator}>
-    <Text style={styles.inputFieldText}>{unitSymbol}</Text>
+    <Text style={styles.inputFieldUnitIndicatorText}>{unitSymbol}</Text>
   </View>
 );
 
 interface MacroInputFieldProps {
+  value: string;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
+  maxLength?: number; // Can I enforce this to be an integer somehow?
   unitSymbol: string;
   renderUnitIndicator?: (unitSymbol: string) => React.ReactNode;
   iconName:
@@ -181,12 +229,16 @@ interface MacroInputFieldProps {
     | 'wheat-solid'
     | 'ball-pile-solid'
     | 'scale-unbalanced-solid';
+  // This adjust the centering of the textInput for the longer (kcals & measure) fields
   opticallyAdjustText?: boolean;
 }
 
 const MacroInputField: React.FC<MacroInputFieldProps> = ({
+  value,
+  setValue,
+  maxLength,
   unitSymbol,
-  renderUnitIndicator, // Assign default if not provided
+  renderUnitIndicator,
   iconName,
   opticallyAdjustText,
 }) => {
@@ -196,6 +248,7 @@ const MacroInputField: React.FC<MacroInputFieldProps> = ({
         flex: 1,
         flexDirection: 'row',
         maxHeight: 40,
+        minHeight: 40,
       }}>
       {/* Icon */}
       <View style={styles.inputFieldIcon}>
@@ -203,7 +256,12 @@ const MacroInputField: React.FC<MacroInputFieldProps> = ({
       </View>
       {/* Input Field */}
       <View style={styles.inputField}>
-        <Text style={[styles.inputFieldText, opticallyAdjustText && { marginLeft: 24 }]}>0.00</Text>
+        <CustomNumberInput
+          maxLength={maxLength}
+          value={value}
+          setValue={setValue}
+          style={[styles.inputFieldTextInput, opticallyAdjustText && { marginLeft: 24 }]}
+        />
       </View>
       {/* Unit indicator */}
       {renderUnitIndicator ? (
@@ -222,7 +280,14 @@ const baseStyles = StyleSheet.create({
     justifyContent: 'center',
     borderTopRightRadius: 10,
     borderBottomRightRadius: 10,
-    // paddingRight: 12,
+    color: Colors.grey40,
+  },
+  inputFieldTextBase: {
+    flex: 1,
+    fontSize: 18,
+    color: Colors.grey40,
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
 });
 
@@ -237,7 +302,6 @@ const styles = StyleSheet.create({
   inputField: {
     flex: 1,
     backgroundColor: Colors.grey60,
-    justifyContent: 'center',
   },
   inputFieldUnitIndicator: {
     ...baseStyles.unitIndicatorBase,
@@ -247,15 +311,12 @@ const styles = StyleSheet.create({
     ...baseStyles.unitIndicatorBase,
     width: 60,
   },
-  inputFieldText: {
-    fontSize: 18,
+  inputFieldUnitIndicatorText: {
+    ...baseStyles.inputFieldTextBase,
     color: Colors.grey40,
-    textAlign: 'center',
+  },
+  inputFieldTextInput: {
+    ...baseStyles.inputFieldTextBase,
+    color: Colors.violet30,
   },
 });
-
-// const specialStyles = StyleSheet.create({
-//   specialInputFieldUnitIndicator: {
-//     ...styles.inputFieldUnitIndicator,
-//   },
-// });

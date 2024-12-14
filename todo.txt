@@ -1,0 +1,22 @@
+STOPPED AT CREATE ITEM
+
+- Create custom TextInput component
+
+CREATE ITEM SCREEN
+
+- Add custom TextInput to each field of Create Item
+- Implement validation
+- Create the item and redirect to the list screen, remounting it if need be (or invert the flatlist?)
+
+EDIT ITEM SCREEN
+
+- Use same layout as ITEM SCREEN
+- Validation should be the same
+
+LIST SCREEN
+
+- Implement adding to meal logic
+
+HOME SCREEN
+
+- Get all entries and run diagnostics

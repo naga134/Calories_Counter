@@ -11,10 +11,10 @@ export default function UnitPicker({
   activeTextColor,
   inactiveTextColor,
 }: {
-  onChange: () => {};
-  showIcon: boolean;
-  showIndicator: boolean;
-  flipIndicator: boolean;
+  onChange: (unitId: number) => void;
+  showIcon?: boolean;
+  showIndicator?: boolean;
+  flipIndicator?: boolean;
   units: {
     label: string;
     value: string;
