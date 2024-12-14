@@ -2,49 +2,67 @@ import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { getAllFoodNames } from 'database/queries/foodsQueries';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useLayoutEffect, useState } from 'react';
-import { HeaderBackButton } from '@react-navigation/elements';
+import { useEffect, useMemo, useState } from 'react';
 import { Dimensions, StyleSheet } from 'react-native';
-import { Button, Colors, Text, TextArea, View } from 'react-native-ui-lib';
+import { Button, Colors, Text, View } from 'react-native-ui-lib';
 import IconSVG from 'components/icons/IconSVG';
-import RotatingCaret from 'components/RotatingCaret';
 import UnitPicker from 'components/UnitPicker';
-import { TextInput } from 'react-native-gesture-handler';
+import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import CustomNumberInput from 'components/CustomNumberInput';
+import { getAllUnits } from 'database/queries/unitsQueries';
+import { validateFoodInputs, ValidationError } from 'utils/validateFood';
 
 export default function Create() {
   const database = useSQLiteContext();
-
   const navigation = useNavigation();
 
-  const { data: names = [] } = useQuery({
+  // Retrieving all the current foods names for validation: names must be unique.
+  const { data: names = [], isFetched: namesFetched } = useQuery({
     queryKey: ['foodnames'],
     queryFn: () => getAllFoodNames(database),
     initialData: [],
   });
 
-  const [pickerValue, setPickerValue] = useState('a');
+  // Retrieving all possible measurement units.
+  const { data: units = [], isFetched: unitsFetched } = useQuery({
+    queryKey: ['allUnits'],
+    queryFn: () => getAllUnits(database),
+    initialData: [],
+  });
 
-  const screenWidth = Dimensions.get('window').width;
+  // Declaring the stateful variable which will hold the currently selected unit's id.
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
 
-  const units = [
-    { label: 'g', value: '1' },
-    { label: 'oz', value: '2' },
-    { label: 'tsp', value: '3' },
-    { label: 'tbsp', value: '4' },
-    { label: 'ml', value: '5' },
-  ];
+  // Initializing the currently selected unit as soon as the units have been fetched.
+  useEffect(() => {
+    if (unitsFetched && units.length > 0 && selectedUnitId === null) {
+      setSelectedUnitId(units[0].id);
+    }
+  }, [units, unitsFetched]);
 
-  const [selectedUnit, setSelectedUnit] = useState(units[0]);
-
-  const [foodName, setFoodName] = useState('');
+  // Food's DATA:
+  const [name, setName] = useState('');
   const [measure, setMeasure] = useState('');
   const [kcals, setKcals] = useState('');
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
 
-  return (
+  const selectedUnit = useMemo(() => {
+    return units.find((unit) => unit.id === selectedUnitId);
+  }, [units, selectedUnitId]);
+
+  const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [validated, setValidated] = useState<boolean>(false);
+
+  useEffect(() => {
+    setValidated(false);
+  }, [name, measure, kcals, protein, carbs, fat]);
+
+  // COMPONENT
+  return !unitsFetched || selectedUnit === null || selectedUnit === undefined ? (
+    <></>
+  ) : (
     <>
       {/* Name banner */}
       <View
@@ -59,8 +77,8 @@ export default function Create() {
         }}>
         {/* Name Input Field */}
         <TextInput
-          value={foodName}
-          onChangeText={(text) => setFoodName(text)}
+          value={name}
+          onChangeText={(text) => setName(text)}
           textAlign="center"
           style={{
             color: 'white',
@@ -87,7 +105,7 @@ export default function Create() {
           maxLength={7}
           opticallyAdjustText
           iconName={'scale-unbalanced-solid'}
-          unitSymbol={selectedUnit.label}
+          unitSymbol={selectedUnit?.symbol}
           renderUnitIndicator={(unitSymbol) => (
             <View style={styles.specialInputFieldUnitIndicator}>
               <Text style={styles.inputFieldUnitIndicatorText}>{unitSymbol}</Text>
@@ -148,6 +166,7 @@ export default function Create() {
               flexDirection: 'row',
               gap: 12,
               maxWidth: 44 + 12 + 80,
+              minHeight: 40 * 3 + 12 * 2,
             }}>
             {/* Icon BOX */}
             <View
@@ -175,9 +194,7 @@ export default function Create() {
                 units={units}
                 flipIndicator
                 showIndicator
-                onChange={(unitId: number) =>
-                  setSelectedUnit(units.find((unit) => unit.value === unitId))
-                }
+                onChange={(unitId: number) => setSelectedUnitId(unitId)}
                 backgroundColor={Colors.grey60}
                 activeTextColor={Colors.violet30}
                 inactiveTextColor={Colors.grey40}
@@ -188,7 +205,46 @@ export default function Create() {
         {/* Button & Warnings */}
         <View style={{ flex: 1, gap: 12, justifyContent: 'flex-end' }}>
           {/* Info box */}
-          <View
+          <ScrollView
+            horizontal
+            style={{
+              flex: 1,
+              // backgroundColor: Colors.violet60,
+              maxHeight: 60,
+              gap: 12,
+            }}>
+            {errors.map((error, index) => (
+              <View
+                key={index}
+                style={{
+                  flexDirection: 'row',
+                  // justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingHorizontal: 16,
+                  gap: 12,
+                  backgroundColor: error.errorType === 'error' ? Colors.red60 : Colors.orange60,
+                  // width: 200,
+                  height: '100%',
+                  borderRadius: 16,
+                  marginLeft: index === 0 ? 0 : 6,
+                  marginRight: index === errors.length - 1 ? 0 : 6,
+                }}>
+                <IconSVG
+                  color={error.errorType === 'error' ? Colors.red10 : Colors.orange10}
+                  width={40}
+                  name="hexagon-exclamation-solid"
+                />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: error.errorType === 'error' ? Colors.red10 : Colors.orange10,
+                  }}>
+                  {error.errorMessage}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+          {/* <View
             style={{
               // flex: 1,
               // maxHeight: '50%',
@@ -198,14 +254,28 @@ export default function Create() {
               padding: 20,
             }}>
             <Text grey10 style={{ textAlign: 'justify', fontSize: 16 }}>
-              Each <Text violet30>{selectedUnit.label}</Text> of{' '}
-              <Text violet30>{foodName === '' ? '<food_name>' : foodName}</Text> contains{' '}
+              Each <Text violet30>{selectedUnit.symbol}</Text> of{' '}
+              <Text violet30>{name === '' ? '<food_name>' : name}</Text> contains:
               <Text violet30>0.00kcal</Text>, <Text violet30>0.00g</Text> of protein,{' '}
               <Text violet30>0.00g</Text> of carbohydrates and <Text violet30>0.00g</Text> of fat.
             </Text>
-          </View>
+          </View> */}
           {/* "Create" Button */}
-          <Button style={{ borderRadius: 12 }} label={'Create'} />
+          <Button
+            style={{ borderRadius: 12 }}
+            label={'Create'}
+            disabled={validated && errors.some((error) => error.errorType === 'error')}
+            onPress={() => {
+              const errors = validateFoodInputs(name, measure, kcals, protein, carbs, fat, names);
+
+              if (errors.length === 0) {
+                // proceed with creation
+              } else {
+                setErrors(errors);
+                setValidated(true);
+              }
+            }}
+          />
         </View>
       </View>
     </>

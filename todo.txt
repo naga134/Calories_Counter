@@ -20,3 +20,13 @@ LIST SCREEN
 HOME SCREEN
 
 - Get all entries and run diagnostics
+
+KNOWN ISSUES:
+
+- unit picker doesn't always scroll on click
+
+WOULD BE INTERESTING TO DO:
+
+I've noticed that when some pages need prior fetching before rendering, the screen 
+transition animations don't look as smooth, because the blank screen suddenly loads
+while sliding. It'd be cool to make the loading screen have the same visual layout.

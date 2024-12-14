@@ -1,5 +1,6 @@
 import { Colors, View, WheelPicker } from 'react-native-ui-lib';
 import IconSVG from './icons/IconSVG';
+import { Unit } from 'database/types';
 
 export default function UnitPicker({
   showIcon,
@@ -15,10 +16,7 @@ export default function UnitPicker({
   showIcon?: boolean;
   showIndicator?: boolean;
   flipIndicator?: boolean;
-  units: {
-    label: string;
-    value: string;
-  }[];
+  units: Unit[];
   backgroundColor: string;
   activeTextColor: string;
   inactiveTextColor: string;
@@ -84,8 +82,9 @@ export default function UnitPicker({
         }}
         itemHeight={40}
         numberOfVisibleRows={3}
-        items={units}
-        initialValue={units[0].value}
+        // maps each unit into a format recognized by the wheel picker component
+        items={units.map((unit) => ({ label: unit.symbol, value: unit.id }))}
+        initialValue={units[0].id}
         onChange={onChange}
         faderProps={{ size: 0 }}
       />
