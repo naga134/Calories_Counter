@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+import { deleteDatabaseSync, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Colors, Icon, Text, View } from 'react-native-ui-lib';
 import { Dimensions, Pressable, ScrollView, StyleSheet } from 'react-native';
@@ -72,6 +72,10 @@ export default function Home() {
     queryFn: () => getAllMeals(database),
     initialData: [],
   });
+
+  // dataclose()
+  // database.closeSync();
+  // deleteDatabaseSync('appDatabase.db');
 
   const [fat, setFat] = useState(0);
   const [protein, setProtein] = useState(0);

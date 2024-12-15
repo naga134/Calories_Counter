@@ -22,7 +22,7 @@ import IconSVG from './icons/IconSVG';
 import AnimatedCircleButton from './AnimatedCircleButton';
 import { useColors } from 'context/ColorContext';
 import FoodDetails from './FoodDetails';
-import getNutritables from 'database/queries/nutritablesQueries';
+import { getNutritablesByFood } from 'database/queries/nutritablesQueries';
 import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { useQuery } from '@tanstack/react-query';
 
@@ -44,7 +44,7 @@ export default function FoodListItem({
 
   const { data: nutritables = [], isFetched } = useQuery({
     queryKey: [`nutritables_${food.id}`],
-    queryFn: () => getNutritables(database, { foodId: food.id }),
+    queryFn: () => getNutritablesByFood(database, { foodId: food.id }),
     initialData: [],
     enabled: food.id != null,
   });

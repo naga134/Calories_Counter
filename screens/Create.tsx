@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
-import { getAllFoodNames } from 'database/queries/foodsQueries';
+import { createFood, getAllFoodNames } from 'database/queries/foodsQueries';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useMemo, useState } from 'react';
 import { Dimensions, KeyboardAvoidingView, StyleSheet } from 'react-native';
@@ -13,6 +13,7 @@ import { getAllUnits } from 'database/queries/unitsQueries';
 import { validateFoodInputs, ValidationError } from 'utils/validateFood';
 import { useHeaderHeight } from '@react-navigation/elements';
 import calculateCalories from 'utils/calculateCalories';
+import { createNutritable } from 'database/queries/nutritablesQueries';
 
 export default function Create() {
   const database = useSQLiteContext();
@@ -60,8 +61,6 @@ export default function Create() {
       calculateCalories(Number(protein), Number(carbs), Number(fat)).toFixed(2).toString()
     );
   }, [protein, carbs, fat]);
-
-  console.log(expectedKcals);
 
   const selectedUnit = useMemo(() => {
     return units.find((unit) => unit.id === selectedUnitId);
@@ -295,7 +294,26 @@ export default function Create() {
                   (!thereAreErrors && thereAreWarnings && validated)
                 ) {
                   // proceed with creation
-                  console.log('aa');
+
+                  console.log(name);
+
+                  const queryResult = createFood(database, { foodName: name });
+
+                  console.log(queryResult);
+
+                  const foodId = queryResult.lastInsertRowId;
+
+                  console.log(
+                    createNutritable(database, {
+                      foodId,
+                      unitId: selectedUnit.id,
+                      baseMeasure: Number(measure),
+                      kcals: Number(kcals === '' ? expectedKcals : kcals),
+                      protein: Number(protein),
+                      carbs: Number(carbs),
+                      fats: Number(fat),
+                    })
+                  );
                 } else {
                   setValidated(true);
                 }

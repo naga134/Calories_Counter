@@ -2,11 +2,8 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { Nutritable } from "database/types";
 import toSQLiteParams from "utils/toSQLiteParams";
 
-interface queryParams {
-    foodId: number; // or string, depending on your database schema
-}
-
-const query = ` 
+export const getNutritablesByFood = async (database: SQLiteDatabase, params: { foodId: number }): Promise<Nutritable[]> => {
+    const query = ` 
 SELECT 
     n.id AS id,
     n.foodId,
@@ -18,7 +15,7 @@ SELECT
     n.fats,
     n.protein
 FROM 
-    nutrients AS n
+    nutritables AS n
 INNER JOIN 
     units AS u ON n.unitId = u.id
 WHERE 
@@ -26,8 +23,6 @@ WHERE
 AND
     n.isDeleted = 0;
 `;
-
-const getNutritables = async (database: SQLiteDatabase, params: queryParams): Promise<Nutritable[]> => {
     // Querying the database
     const queryResult = await database.getAllAsync(query, toSQLiteParams(params));
     // Mapping the database results to Food objects
@@ -48,4 +43,28 @@ const getNutritables = async (database: SQLiteDatabase, params: queryParams): Pr
     }));
 };
 
-export default getNutritables;
+export const createNutritable = (database: SQLiteDatabase, params: {
+    foodId: number,
+    unitId: number,
+    baseMeasure: number,
+    kcals: number
+    protein: number
+    carbs: number
+    fats: number
+}) => {
+    const query = `
+INSERT INTO nutritables
+  (foodId, unitId, baseMeasure, kcals, protein, carbs, fats, isDeleted)
+VALUES (
+  $foodId,
+  $unitId,
+  $baseMeasure,
+  $kcals,
+  $protein,
+  $carbs,
+  $fats,
+  0
+);`;
+
+    return database.runSync(query, toSQLiteParams(params));
+}

@@ -9,7 +9,7 @@ import IconSVG from './icons/IconSVG';
 import AnimatedCircleButton from './AnimatedCircleButton';
 import { useColors } from 'context/ColorContext';
 import toSQLiteParams from 'utils/toSQLiteParams';
-import getNutritables from 'database/queries/nutritablesQueries';
+import { getNutritablesByFood } from 'database/queries/nutritablesQueries';
 import { useSQLiteContext } from 'expo-sqlite';
 import toCapped from 'utils/toCapped';
 import UnitPicker from './UnitPicker';
@@ -40,10 +40,7 @@ export default function FoodDetails({
     setKcals((amount * nutritables[0].kcals) / nutritables[0].baseMeasure);
   }, [amount]);
 
-  const units = nutritables.map((nutritable) => ({
-    label: nutritable.unit.symbol,
-    value: nutritable.unit.id,
-  }));
+  const units = nutritables.map((nutritable) => nutritable.unit);
 
   const macroItems = [
     { color: colors.get('fat'), iconName: 'bacon-solid', amount: fats },
@@ -58,6 +55,8 @@ export default function FoodDetails({
       amount: protein,
     },
   ] as const;
+
+  // return <></>;
 
   return (
     // Whole thing
