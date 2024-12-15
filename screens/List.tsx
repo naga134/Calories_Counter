@@ -44,7 +44,6 @@ export default function FoodsList({ route }: Props) {
 
   useEffect(() => {
     const listener = addDatabaseChangeListener((change) => {
-      console.log(change);
       if (change.tableName === 'foods') refetch();
     });
 

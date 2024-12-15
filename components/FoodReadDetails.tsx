@@ -1,6 +1,6 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Food, Nutritable } from 'database/types';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Colors, Icon, NumberInput, Text, TextField, View, WheelPicker } from 'react-native-ui-lib';
 
 // import WheelPicker from '@quidone/react-native-wheel-picker';
@@ -14,6 +14,8 @@ import { useSQLiteContext } from 'expo-sqlite';
 import toCapped from 'utils/toCapped';
 import UnitPicker from './UnitPicker';
 import { RootStackParamList } from 'navigation';
+import { useQuery } from '@tanstack/react-query';
+import { getAllUnits } from 'database/queries/unitsQueries';
 
 export default function FoodReadDetails({
   food,
@@ -22,6 +24,8 @@ export default function FoodReadDetails({
   food: Food;
   nutritables: Nutritable[];
 }) {
+  const database = useSQLiteContext();
+
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const colors = useColors();
 
@@ -32,16 +36,32 @@ export default function FoodReadDetails({
 
   const [amount, setAmount] = useState(0);
 
-  // TODO : change this to calculate based on the currently selected unit's nutritable
-
-  useEffect(() => {
-    setProtein((amount / nutritables[0].baseMeasure) * nutritables[0].protein);
-    setFats((amount / nutritables[0].baseMeasure) * nutritables[0].fats);
-    setCarbs((amount / nutritables[0].baseMeasure) * nutritables[0].carbs);
-    setKcals((amount * nutritables[0].kcals) / nutritables[0].baseMeasure);
-  }, [amount]);
+  // Retrieving all possible measurement units.
+  const { data: allUnits = [], isFetched: unitsFetched } = useQuery({
+    queryKey: ['allUnits'],
+    queryFn: () => getAllUnits(database),
+    initialData: [],
+  });
 
   const units = nutritables.map((nutritable) => nutritable.unit);
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(units[0].id);
+
+  useEffect(() => {
+    if (units.length > 0 && selectedUnitId === null) {
+      setSelectedUnitId(units[0].id);
+    } else if (units.length > 0 && !units.some((unit) => unit.id === selectedUnitId)) {
+      // If the current selectedUnitId is no longer valid, we reset it
+      setSelectedUnitId(units[0].id);
+    }
+  }, [units, selectedUnitId]);
+
+  // const selectedUnit = useMemo(() => {
+  //   return units.find((unit) => unit.id === selectedUnitId);
+  // }, [units, selectedUnitId]);
+
+  const selectedNutritable = useMemo(() => {
+    return nutritables.find((nutritable) => nutritable.unit.id === selectedUnitId);
+  }, [units, selectedUnitId]);
 
   const macroItems = [
     { color: colors.get('fat'), iconName: 'bacon-solid', amount: fats },
@@ -57,7 +77,17 @@ export default function FoodReadDetails({
     },
   ] as const;
 
-  // return <></>;
+  // (!!!) This is sometimes breaking when the user tries to select a newly-created nutritable
+  useEffect(() => {
+    setProtein((amount / selectedNutritable!.baseMeasure) * selectedNutritable!.protein);
+    setFats((amount / selectedNutritable!.baseMeasure) * selectedNutritable!.fats);
+    setCarbs((amount / selectedNutritable!.baseMeasure) * selectedNutritable!.carbs);
+    setKcals((amount * selectedNutritable!.kcals) / selectedNutritable!.baseMeasure);
+  }, [amount, selectedNutritable]);
+
+  const availableUnits = allUnits.filter(
+    (unit) => !units.some((usedUnit) => usedUnit.symbol === unit.symbol)
+  );
 
   return (
     // Whole thing
@@ -79,19 +109,14 @@ export default function FoodReadDetails({
           backgroundColor={Colors.violet70}
           activeTextColor={Colors.violet20}
           inactiveTextColor={Colors.violet50}
+          onChange={(unitId: number) => setSelectedUnitId(unitId)}
         />
       </View>
       {/* Action buttons section */}
       <View style={styles.bottomSection}>
         {/* EDIT NUTRITABLE BUTTON */}
         <AnimatedCircleButton
-          onPress={() =>
-            navigation.navigate(
-              'Edit',
-              // (!!!) Change this to the currently selected nutritional table
-              { nutritable: nutritables[0], food }
-            )
-          }
+          onPress={() => navigation.navigate('Edit', { nutritable: selectedNutritable!, food })}
           buttonStyle={styles.circleButton}
           iconProps={{
             style: { marginLeft: 6 },
@@ -113,7 +138,13 @@ export default function FoodReadDetails({
         />
         {/* ADD NUTRITABLE BUTTON */}
         <AnimatedCircleButton
-          onPress={() => navigation.navigate('Add', { food })}
+          disabled={availableUnits.length === 0}
+          onPress={() =>
+            navigation.navigate('Add', {
+              food,
+              units: availableUnits,
+            })
+          }
           buttonStyle={styles.circleButton}
           iconProps={{
             style: { marginLeft: 3 },

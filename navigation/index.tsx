@@ -1,7 +1,7 @@
 import { HeaderBackButton } from '@react-navigation/elements';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Food, Nutritable } from 'database/types';
+import { Food, Nutritable, Unit } from 'database/types';
 import React from 'react';
 import { View, Text, Button, StyleSheet, Modal as RNModal } from 'react-native';
 import Add from 'screens/Add';
@@ -14,8 +14,8 @@ import FoodsList from 'screens/List';
 export type RootStackParamList = {
   Home: undefined;
   List: { title: string }; // List existing foods
-  Create: undefined; // Crate new food
-  Add: { food: Food }; // Add nutritional table
+  Create: undefined; // Create new food
+  Add: { food: Food; units: Unit[] }; // Add nutritional table
   Edit: { nutritable: Nutritable; food: Food }; // Edit nutritional table
 };
 
@@ -48,6 +48,7 @@ const RootStack = () => {
           // TODO: - pass food and existing nutritables as parameters
           // - set title dynamically: "Add nutritional table to [foodname]
           options={{
+            title: 'Add nutritional table',
             animation: 'slide_from_right',
           }}
         />

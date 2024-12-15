@@ -23,10 +23,6 @@ export default function Edit() {
   const database = useSQLiteContext();
   const navigation = useNavigation();
 
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const headerHeight = useHeaderHeight();
-
   // Retrieving all possible measurement units.
   const units = [nutritable.unit];
 

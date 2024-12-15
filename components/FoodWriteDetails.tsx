@@ -15,6 +15,7 @@ import calculateCalories from 'utils/calculateCalories';
 import { Unit } from 'database/types';
 
 type FoodWriteDetailsProps = {
+  disableNameEdit?: boolean;
   currentName?: string;
   measure: string;
   setMeasure: React.Dispatch<React.SetStateAction<string>>;
@@ -52,6 +53,7 @@ export default function FoodWriteDetails({
   setSelectedUnitId,
   units,
   queryRunnerFunction,
+  disableNameEdit,
 }: FoodWriteDetailsProps) {
   const database = useSQLiteContext();
   const navigation = useNavigation();
@@ -101,6 +103,7 @@ export default function FoodWriteDetails({
           }}>
           {/* Name Input Field */}
           <TextInput
+            editable={!disableNameEdit}
             value={name}
             onChangeText={(text) => setName(text)}
             textAlign="center"
@@ -114,11 +117,11 @@ export default function FoodWriteDetails({
             placeholder="New Food"
             placeholderTextColor={Colors.violet40}
           />
-          <IconSVG
+          {!disableNameEdit && <IconSVG
             style={{ position: 'absolute', right: 12 }}
             name="feather-pointed-solid"
             color="white"
-          />
+          />}
         </View>
         {/* Whole thing */}
         <View
