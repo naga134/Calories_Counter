@@ -17,17 +17,14 @@ export default function App() {
     <GestureHandlerRootView>
       <QueryClientProvider client={queryClient}>
         <SQLiteProvider
-          useSuspense
           databaseName="appDatabase.db"
-          // options={{ enableChangeListener: true }}
+          options={{ enableChangeListener: true }}
           assetSource={{
             assetId: require('assets/database/appDatabase.db'),
           }}>
           <DateProvider>
             <ColorsProvider>
-              <Suspense fallback={<Text>Loading...</Text>}>
-                <RootStack />
-              </Suspense>
+              <RootStack />
             </ColorsProvider>
           </DateProvider>
         </SQLiteProvider>
