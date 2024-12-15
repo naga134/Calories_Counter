@@ -15,6 +15,7 @@ import Animated, {
   Easing,
   withDelay,
   cancelAnimation,
+  interpolateColor,
 } from 'react-native-reanimated';
 
 import { useEffect, useRef, useState } from 'react';
@@ -79,20 +80,35 @@ export default function FoodsList({ route }: Props) {
           />
         )}
       />
-      <BottomBar />
+      <BottomBar disabled={!scrollEnabled} />
     </>
   );
 }
 
-function BottomBar() {
+function BottomBar({ disabled }: { disabled?: boolean }) {
   // useNavigation<StackNavigationProp<RootStackParamList>>
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const [expanded, setExpanded] = useState(false);
   const screenWidth = Dimensions.get('window').width;
 
-  const animation1 = useSharedValue(0);
-  const animation2 = useSharedValue(0);
+  useEffect(() => {
+    // If bottom bar becomes disabled while expanded, de-expand it
+    if (disabled && expanded) {
+      setExpanded(false);
+    }
+  }, [disabled, expanded]);
+
+  const rollAnim = useSharedValue(0);
+  const expandAnim = useSharedValue(0);
+  const disabledAnim = useSharedValue(disabled ? 1 : 0);
+
+  useEffect(() => {
+    disabledAnim.value = withTiming(disabled ? 1 : 0, {
+      duration: 300,
+      easing: Easing.inOut(Easing.cubic),
+    });
+  }, [disabled]);
 
   useEffect(() => {
     const toValue = expanded ? 1 : 0;
@@ -103,52 +119,54 @@ function BottomBar() {
 
     if (expanded) {
       // If it is not yet expanded, run animation1 first, then animation2.
-      animation1.value = withTiming(toValue, config);
-      animation2.value = withDelay(300, withTiming(toValue, config));
+      rollAnim.value = withTiming(toValue, config);
+      expandAnim.value = withDelay(300, withTiming(toValue, config));
     } else {
       // If it is already expanded, run animation2 first, then animation1.
-      animation2.value = withTiming(toValue, config);
-      animation1.value = withDelay(500, withTiming(toValue, config));
+      expandAnim.value = withTiming(toValue, config);
+      rollAnim.value = withDelay(500, withTiming(toValue, config));
     }
-  }, [expanded, animation1, animation2]);
+  }, [expanded, rollAnim, expandAnim]);
 
   useEffect(() => {
     return () => {
       // Cancel the animation to prevent it from running after unmount
-      cancelAnimation(animation1);
-      cancelAnimation(animation2);
+      cancelAnimation(disabledAnim);
+      cancelAnimation(rollAnim);
+      cancelAnimation(expandAnim);
     };
   }, []);
 
   // Constructing animated styles:
 
   const searchButtonAnimatedStyle = useAnimatedStyle(() => {
-    const rotation = interpolate(animation1.value, [0, 1], [0, 360]);
+    const rotation = interpolate(rollAnim.value, [0, 1], [0, 360]);
 
     return {
-      right: interpolate(animation1.value, [0, 1], [64, 8]),
+      right: interpolate(rollAnim.value, [0, 1], [64, 8]),
+      backgroundColor: interpolateColor(disabledAnim.value, [0, 1], ['#5A48F5', '#A6ACB1']),
       transform: [{ rotate: `${rotation}deg` }],
     };
   });
 
   const addButtonAnimatedStyle = useAnimatedStyle(() => {
-    const rotation = interpolate(animation1.value, [0, 1], [0, 180]);
-
+    const rotation = interpolate(rollAnim.value, [0, 1], [0, 180]);
     return {
-      right: interpolate(animation1.value, [0, 1], [8, -48]),
+      right: interpolate(rollAnim.value, [0, 1], [8, -48]),
+      backgroundColor: interpolateColor(disabledAnim.value, [0, 1], ['#5A48F5', '#A6ACB1']),
       transform: [{ rotate: `${rotation}deg` }],
     };
   });
 
   const bottomBarAnimatedStyle = useAnimatedStyle(() => {
-    const borderRadius = interpolate(animation2.value, [0, 1], [0, 100]);
-
+    const borderRadius = interpolate(expandAnim.value, [0, 1], [0, 100]);
     return {
-      width: interpolate(animation2.value, [0, 1], [0, screenWidth - 16]),
+      width: interpolate(expandAnim.value, [0, 1], [0, screenWidth - 16]),
+      backgroundColor: interpolateColor(disabledAnim.value, [0, 1], ['#5A48F5', '#A6ACB1']),
       borderTopRightRadius: borderRadius,
       borderBottomRightRadius: borderRadius,
       right: interpolate(
-        animation2.value,
+        expandAnim.value,
         [0, 1],
         [32 /* half the button's length + padding */, 8]
       ),
@@ -171,6 +189,7 @@ function BottomBar() {
       </Animated.View>
       {/* Search Button */}
       <AnimatedCircleButton
+        disabled={disabled}
         onPress={() => setExpanded(!expanded)}
         buttonStyle={[styles.searchButton, searchButtonAnimatedStyle]}
         iconProps={{
@@ -182,6 +201,7 @@ function BottomBar() {
       />
       {/* Add Food Button */}
       <AnimatedCircleButton
+        disabled={disabled}
         onPress={() => navigation.navigate('Create')}
         buttonStyle={[styles.addFoodButton, addButtonAnimatedStyle]}
         iconProps={{
