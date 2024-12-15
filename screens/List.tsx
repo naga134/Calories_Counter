@@ -56,7 +56,15 @@ export default function FoodsList({ route }: Props) {
   const scrollViewRef = useRef<FlatList>(null);
   const [scrollEnabled, setScrollEnabled] = useState(true);
 
-  // Apply LOADING effect while data is fetching or refetching
+  // Creating stateful variable to hold the user's search string.
+  const [searchParams, setSearchParams] = useState('');
+
+  // Returning only the foods that match the user's search string.
+  const searchResults = foods.filter((food) =>
+    food.name.toLowerCase().includes(searchParams.toLowerCase())
+  );
+
+  // TODO: Apply LOADING effect while data is fetching or refetching
 
   return (
     <>
@@ -70,22 +78,36 @@ export default function FoodsList({ route }: Props) {
           paddingBottom: 68,
         }}
         keyExtractor={(item, index) => (item.id ? item.id.toString() : index)}
-        data={foods}
-        renderItem={({ item: food, index: index }) => (
-          <FoodListItem
-            food={food}
-            index={index}
-            scrollViewRef={scrollViewRef}
-            setScrollEnabled={setScrollEnabled}
-          />
-        )}
+        data={searchResults}
+        renderItem={({ item: food, index: index }) => {
+          return (
+            // searchResults.some((result) => result.id === food.id) && (
+            <FoodListItem
+              food={food}
+              index={index}
+              scrollViewRef={scrollViewRef}
+              setScrollEnabled={setScrollEnabled}
+            />
+            // )
+          );
+        }}
       />
-      <BottomBar disabled={!scrollEnabled} />
+      <BottomBar
+        searchParams={searchParams}
+        setSearchParams={setSearchParams}
+        disabled={!scrollEnabled}
+      />
     </>
   );
 }
 
-function BottomBar({ disabled }: { disabled?: boolean }) {
+interface BottomBarProps {
+  disabled?: boolean; // Optional boolean indicating if the bottom bar is disabled
+  searchParams: string; // The current search string
+  setSearchParams: React.Dispatch<React.SetStateAction<string>>; // State updater function for searchParams
+}
+
+function BottomBar({ disabled, searchParams, setSearchParams }: BottomBarProps) {
   // useNavigation<StackNavigationProp<RootStackParamList>>
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
@@ -97,7 +119,11 @@ function BottomBar({ disabled }: { disabled?: boolean }) {
     if (disabled && expanded) {
       setExpanded(false);
     }
-  }, [disabled, expanded]);
+
+    if (searchParams !== '' && !expanded && !disabled) {
+      setExpanded(true);
+    }
+  }, [disabled, expanded, searchParams]);
 
   const rollAnim = useSharedValue(0);
   const expandAnim = useSharedValue(0);
@@ -185,6 +211,7 @@ function BottomBar({ disabled }: { disabled?: boolean }) {
           style={[styles.textField, { width: screenWidth - 104 }]}
           placeholder={'Search for a food!'}
           placeholderTextColor={Colors.white}
+          onChangeText={(text) => setSearchParams(text)}
         />
       </Animated.View>
       {/* Search Button */}
