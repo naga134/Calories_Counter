@@ -42,7 +42,7 @@ export default function FoodListItem({
   // Fetching
   const database: SQLiteDatabase = useSQLiteContext();
 
-  const { data: nutritables = [], isFetched } = useQuery({
+  const { data: nutritables = [], isFetched, refetch } = useQuery({
     queryKey: [`nutritables_${food.id}`],
     queryFn: () => getNutritablesByFood(database, { foodId: food.id }),
     initialData: [],

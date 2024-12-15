@@ -19,6 +19,7 @@ export default function App() {
         <SQLiteProvider
           useSuspense
           databaseName="appDatabase.db"
+          // options={{ enableChangeListener: true }}
           assetSource={{
             assetId: require('assets/database/appDatabase.db'),
           }}>

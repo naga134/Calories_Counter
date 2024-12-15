@@ -1,5 +1,5 @@
 import { getAllFoods } from 'database/queries/foodsQueries';
-import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { FlatList, Pressable, ScrollView } from 'react-native-gesture-handler';
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import FoodListItem from 'components/FoodsListItem';
@@ -32,11 +32,26 @@ export default function FoodsList({ route }: Props) {
   const database: SQLiteDatabase = useSQLiteContext();
 
   // Retrieving the list of daily meals from the database
-  const { data: foods = [], isFetched } = useQuery({
+  const {
+    data: foods = [],
+    isFetched,
+    refetch,
+  } = useQuery({
     queryKey: ['foods'],
     queryFn: () => getAllFoods(database),
     initialData: [],
   });
+
+  useEffect(() => {
+    const listener = addDatabaseChangeListener((change) => {
+      console.log(change);
+      if (change.tableName === 'foods') console.log('aaaaa');
+    });
+
+    return () => {
+      listener.remove();
+    };
+  }, []);
 
   const scrollViewRef = useRef<FlatList>(null);
   const [scrollEnabled, setScrollEnabled] = useState(true);
