@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Food, Nutritable } from 'database/types';
 import { useEffect, useState } from 'react';
 import { Colors, Icon, NumberInput, Text, TextField, View, WheelPicker } from 'react-native-ui-lib';
@@ -13,15 +13,16 @@ import { getNutritablesByFood } from 'database/queries/nutritablesQueries';
 import { useSQLiteContext } from 'expo-sqlite';
 import toCapped from 'utils/toCapped';
 import UnitPicker from './UnitPicker';
+import { RootStackParamList } from 'navigation';
 
-export default function FoodDetails({
+export default function FoodReadDetails({
   food,
   nutritables,
 }: {
   food: Food;
   nutritables: Nutritable[];
 }) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const colors = useColors();
 
   const [fats, setFats] = useState(0);
@@ -84,7 +85,13 @@ export default function FoodDetails({
       <View style={styles.bottomSection}>
         {/* EDIT NUTRITABLE BUTTON */}
         <AnimatedCircleButton
-          onPress={() => navigation.navigate('Edit')}
+          onPress={() =>
+            navigation.navigate(
+              'Edit',
+              // (!!!) Change this to the currently selected nutritional table
+              { nutritable: nutritables[0], food }
+            )
+          }
           buttonStyle={styles.circleButton}
           iconProps={{
             style: { marginLeft: 6 },
@@ -106,7 +113,7 @@ export default function FoodDetails({
         />
         {/* ADD NUTRITABLE BUTTON */}
         <AnimatedCircleButton
-          onPress={() => navigation.navigate('Add')}
+          onPress={() => navigation.navigate('Add', { food })}
           buttonStyle={styles.circleButton}
           iconProps={{
             style: { marginLeft: 3 },

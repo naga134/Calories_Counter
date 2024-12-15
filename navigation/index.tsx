@@ -1,6 +1,7 @@
 import { HeaderBackButton } from '@react-navigation/elements';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { Food, Nutritable } from 'database/types';
 import React from 'react';
 import { View, Text, Button, StyleSheet, Modal as RNModal } from 'react-native';
 import Add from 'screens/Add';
@@ -14,8 +15,8 @@ export type RootStackParamList = {
   Home: undefined;
   List: { title: string }; // List existing foods
   Create: undefined; // Crate new food
-  Add: undefined; // Add nutritional table
-  Edit: undefined; // Edit nutritional table
+  Add: { food: Food }; // Add nutritional table
+  Edit: { nutritable: Nutritable; food: Food }; // Edit nutritional table
 };
 
 const Stack = createStackNavigator<RootStackParamList>();

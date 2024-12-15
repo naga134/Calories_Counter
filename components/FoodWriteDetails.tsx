@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
-import { createFood, getAllFoodNames } from 'database/queries/foodsQueries';
-import { useSQLiteContext } from 'expo-sqlite';
+import { getAllFoodNames } from 'database/queries/foodsQueries';
+import { SQLiteRunResult, useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useMemo, useState } from 'react';
 import { Dimensions, KeyboardAvoidingView, StyleSheet } from 'react-native';
 import { Button, Colors, Text, View } from 'react-native-ui-lib';
@@ -9,13 +9,50 @@ import IconSVG from 'components/icons/IconSVG';
 import UnitPicker from 'components/UnitPicker';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import CustomNumberInput from 'components/CustomNumberInput';
-import { getAllUnits } from 'database/queries/unitsQueries';
 import { validateFoodInputs, ValidationError } from 'utils/validateFood';
 import { useHeaderHeight } from '@react-navigation/elements';
 import calculateCalories from 'utils/calculateCalories';
-import { createNutritable } from 'database/queries/nutritablesQueries';
+import { Unit } from 'database/types';
 
-export default function Create() {
+type FoodWriteDetailsProps = {
+  currentName?: string;
+  measure: string;
+  setMeasure: React.Dispatch<React.SetStateAction<string>>;
+  name: string;
+  setName: React.Dispatch<React.SetStateAction<string>>;
+  kcals: string;
+  setKcals: React.Dispatch<React.SetStateAction<string>>;
+  protein: string;
+  setProtein: React.Dispatch<React.SetStateAction<string>>;
+  carbs: string;
+  setCarbs: React.Dispatch<React.SetStateAction<string>>;
+  fat: string;
+  setFat: React.Dispatch<React.SetStateAction<string>>;
+  units: Unit[];
+  selectedUnitId: number | null;
+  setSelectedUnitId: React.Dispatch<React.SetStateAction<number | null>>;
+  queryRunnerFunction: () => void;
+};
+
+export default function FoodWriteDetails({
+  currentName,
+  name,
+  setName,
+  measure,
+  setMeasure,
+  kcals,
+  setKcals,
+  protein,
+  setProtein,
+  carbs,
+  setCarbs,
+  fat,
+  setFat,
+  selectedUnitId,
+  setSelectedUnitId,
+  units,
+  queryRunnerFunction,
+}: FoodWriteDetailsProps) {
   const database = useSQLiteContext();
   const navigation = useNavigation();
 
@@ -23,39 +60,7 @@ export default function Create() {
   const screenHeight = Dimensions.get('window').height;
   const headerHeight = useHeaderHeight();
 
-  // Retrieving all the current foods names for validation: names must be unique.
-  const { data: names = [], isFetched: namesFetched } = useQuery({
-    queryKey: ['foodnames'],
-    queryFn: () => getAllFoodNames(database),
-    initialData: [],
-  });
-
-  // Retrieving all possible measurement units.
-  const { data: units = [], isFetched: unitsFetched } = useQuery({
-    queryKey: ['allUnits'],
-    queryFn: () => getAllUnits(database),
-    initialData: [],
-  });
-
-  // Declaring the stateful variable which will hold the currently selected unit's id.
-  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
-
-  // Initializing the currently selected unit as soon as the units have been fetched.
-  useEffect(() => {
-    if (unitsFetched && units.length > 0 && selectedUnitId === null) {
-      setSelectedUnitId(units[0].id);
-    }
-  }, [units, unitsFetched]);
-
-  // Food's DATA:
-  const [name, setName] = useState('');
-  const [measure, setMeasure] = useState('');
-  const [kcals, setKcals] = useState('');
-  const [protein, setProtein] = useState('');
-  const [carbs, setCarbs] = useState('');
-  const [fat, setFat] = useState('');
-
-  const [expectedKcals, setExpectedKcals] = useState('');
+  const [expectedKcals, setExpectedKcals] = useState('0.00');
   useEffect(() => {
     setExpectedKcals(
       calculateCalories(Number(protein), Number(carbs), Number(fat)).toFixed(2).toString()
@@ -66,17 +71,22 @@ export default function Create() {
     return units.find((unit) => unit.id === selectedUnitId);
   }, [units, selectedUnitId]);
 
+  //// VALIDATION
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [validated, setValidated] = useState<boolean>(false);
+  // Retrieving all names for validation purposes: names must be unique.
+  const { data: names = [], isFetched: namesFetched } = useQuery({
+    queryKey: ['foodnames'],
+    queryFn: () => getAllFoodNames(database),
+    initialData: [],
+  });
 
   useEffect(() => {
     setValidated(false);
   }, [name, measure, kcals, protein, carbs, fat]);
 
   // COMPONENT
-  return !unitsFetched || selectedUnit === null || selectedUnit === undefined ? (
-    <></>
-  ) : (
+  return (
     <>
       {/* Name banner */}
       <KeyboardAvoidingView style={{ height: screenHeight - headerHeight }}>
@@ -125,7 +135,7 @@ export default function Create() {
             maxLength={7}
             opticallyAdjustText
             iconName={'scale-unbalanced-solid'}
-            unitSymbol={selectedUnit?.symbol}
+            unitSymbol={selectedUnit!.symbol}
             renderUnitIndicator={(unitSymbol) => (
               <View style={styles.specialInputFieldUnitIndicator}>
                 <Text style={styles.inputFieldUnitIndicatorText}>{unitSymbol}</Text>
@@ -282,7 +292,7 @@ export default function Create() {
                   protein,
                   carbs,
                   fat,
-                  names
+                  names.filter((name) => name !== currentName)
                 );
                 setErrors(errors);
 
@@ -293,27 +303,7 @@ export default function Create() {
                   (!thereAreErrors && !thereAreWarnings) ||
                   (!thereAreErrors && thereAreWarnings && validated)
                 ) {
-                  // proceed with creation
-
-                  console.log(name);
-
-                  const queryResult = createFood(database, { foodName: name });
-
-                  console.log(queryResult);
-
-                  const foodId = queryResult.lastInsertRowId;
-
-                  console.log(
-                    createNutritable(database, {
-                      foodId,
-                      unitId: selectedUnit.id,
-                      baseMeasure: Number(measure),
-                      kcals: Number(kcals === '' ? expectedKcals : kcals),
-                      protein: Number(protein),
-                      carbs: Number(carbs),
-                      fats: Number(fat),
-                    })
-                  );
+                  queryRunnerFunction();
                 } else {
                   setValidated(true);
                 }

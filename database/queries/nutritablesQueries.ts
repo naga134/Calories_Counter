@@ -3,26 +3,26 @@ import { Nutritable } from "database/types";
 import toSQLiteParams from "utils/toSQLiteParams";
 
 export const getNutritablesByFood = async (database: SQLiteDatabase, params: { foodId: number }): Promise<Nutritable[]> => {
-    const query = ` 
-SELECT 
-    n.id AS id,
-    n.foodId,
-    u.id AS unitId,
-    u.symbol AS unitSymbol,
-    n.baseMeasure AS baseMeasure,
-    n.kcals,
-    n.carbs,
-    n.fats,
-    n.protein
-FROM 
-    nutritables AS n
-INNER JOIN 
-    units AS u ON n.unitId = u.id
-WHERE 
-    n.foodId = $foodId
-AND
-    n.isDeleted = 0;
-`;
+    const query = `SELECT 
+                       n.id AS id,
+                       n.foodId,
+                       u.id AS unitId,
+                       u.symbol AS unitSymbol,
+                       n.baseMeasure AS baseMeasure,
+                       n.kcals,
+                       n.carbs,
+                       n.fats,
+                       n.protein
+                   FROM 
+                       nutritables AS n
+                   INNER JOIN 
+                       units AS u ON n.unitId = u.id
+                   WHERE 
+                       n.foodId = $foodId
+                   AND
+                       n.isDeleted = 0;
+    `;
+
     // Querying the database
     const queryResult = await database.getAllAsync(query, toSQLiteParams(params));
     // Mapping the database results to Food objects
@@ -43,6 +43,8 @@ AND
     }));
 };
 
+
+// 
 export const createNutritable = (database: SQLiteDatabase, params: {
     foodId: number,
     unitId: number,
@@ -52,19 +54,29 @@ export const createNutritable = (database: SQLiteDatabase, params: {
     carbs: number
     fats: number
 }) => {
-    const query = `
-INSERT INTO nutritables
-  (foodId, unitId, baseMeasure, kcals, protein, carbs, fats, isDeleted)
-VALUES (
-  $foodId,
-  $unitId,
-  $baseMeasure,
-  $kcals,
-  $protein,
-  $carbs,
-  $fats,
-  0
-);`;
+    const query = `INSERT INTO nutritables
+                   (foodId, unitId, baseMeasure, kcals, protein, carbs, fats, isDeleted)
+                   VALUES ( $foodId, $unitId, $baseMeasure, $kcals, $protein, $carbs, $fats, 0);`;
+    return database.runSync(query, toSQLiteParams(params));
+}
 
+// 
+export const updateNutritable = (database: SQLiteDatabase, params: {
+    baseMeasure: number,
+    kcals: number,
+    carbs: number,
+    fats: number,
+    protein: number,
+    nutritableId: number
+}) => {
+    const query = `
+    UPDATE nutritables SET
+    baseMeasure = $baseMeasure,
+    kcals = $kcals,
+    carbs = $carbs,
+    fats = $fats,
+    protein = $protein
+    WHERE id = $nutritableId;
+    `;
     return database.runSync(query, toSQLiteParams(params));
 }

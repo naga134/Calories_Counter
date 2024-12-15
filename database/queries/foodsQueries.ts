@@ -22,3 +22,14 @@ export const createFood = (database: SQLiteDatabase, params: { foodName: string 
   const query = "INSERT INTO foods (name, isDeleted) VALUES ($foodName, 0);";
   return database.runSync(query, toSQLiteParams(params));
 };
+
+export const updateFoodName = (database: SQLiteDatabase, params: { foodId: number, newFoodName: string }) => {
+  const query = `UPDATE foods SET name = $newFoodName WHERE id = $foodId;`;
+  return database.runSync(query, toSQLiteParams(params));
+}
+
+// import toSQLiteParameters from "../functions/toSQLiteParameters";
+
+
+
+

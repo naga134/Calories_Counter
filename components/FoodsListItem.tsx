@@ -21,7 +21,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import IconSVG from './icons/IconSVG';
 import AnimatedCircleButton from './AnimatedCircleButton';
 import { useColors } from 'context/ColorContext';
-import FoodDetails from './FoodDetails';
+import FoodReadDetails from './FoodReadDetails';
 import { getNutritablesByFood } from 'database/queries/nutritablesQueries';
 import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { useQuery } from '@tanstack/react-query';
@@ -60,14 +60,14 @@ export default function FoodListItem({
 
   useEffect(() => {
     setScrollEnabled(!expanded);
-    extraPadding.value = withTiming(expanded ? 208 : 0, { duration: 300 }); // animate to 100 or 0 depending on expanded
+    extraPadding.value = withTiming(expanded ? 264 : 0, { duration: 300 }); // animate to 100 or 0 depending on expanded
   }, [expanded]);
 
   const extraPaddingAnimation = useAnimatedStyle(() => ({ marginBottom: extraPadding.value }));
 
   return (
     <Animated.View
-    // style={extraPaddingAnimation}
+    style={extraPaddingAnimation}
     >
       <ExpandableSection
         expanded={expanded}
@@ -105,7 +105,7 @@ function ExpandableSectionHeader({ food, expanded }: { food: Food; expanded: boo
 function ExpandableSectionBody({ food, nutritables }: { food: Food; nutritables: Nutritable[] }) {
   return (
     <View style={styles.cardBackground}>
-      <FoodDetails food={food} nutritables={nutritables} />
+      <FoodReadDetails food={food} nutritables={nutritables} />
     </View>
   );
 }
