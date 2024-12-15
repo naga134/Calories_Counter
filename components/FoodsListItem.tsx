@@ -23,7 +23,7 @@ import AnimatedCircleButton from './AnimatedCircleButton';
 import { useColors } from 'context/ColorContext';
 import FoodReadDetails from './FoodReadDetails';
 import { getNutritablesByFood } from 'database/queries/nutritablesQueries';
-import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { useQuery } from '@tanstack/react-query';
 
 type FoodListItemProps = {
@@ -42,12 +42,27 @@ export default function FoodListItem({
   // Fetching
   const database: SQLiteDatabase = useSQLiteContext();
 
-  const { data: nutritables = [], isFetched, refetch } = useQuery({
+  const {
+    data: nutritables = [],
+    isFetched,
+    refetch,
+  } = useQuery({
     queryKey: [`nutritables_${food.id}`],
     queryFn: () => getNutritablesByFood(database, { foodId: food.id }),
     initialData: [],
     enabled: food.id != null,
   });
+
+  useEffect(() => {
+    const listener = addDatabaseChangeListener((change) => {
+      console.log(change);
+      if (change.tableName === 'nutritables') refetch();
+    });
+
+    return () => {
+      listener.remove();
+    };
+  }, []);
 
   // TODO: Apply loading effect while data is loading
 
@@ -66,9 +81,7 @@ export default function FoodListItem({
   const extraPaddingAnimation = useAnimatedStyle(() => ({ marginBottom: extraPadding.value }));
 
   return (
-    <Animated.View
-    style={extraPaddingAnimation}
-    >
+    <Animated.View style={extraPaddingAnimation}>
       <ExpandableSection
         expanded={expanded}
         onPress={() => {

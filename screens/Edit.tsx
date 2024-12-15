@@ -93,6 +93,7 @@ export default function Edit() {
             nutritableId: nutritable.id,
           });
         }
+        navigation.goBack();
       }}
     />
   );

@@ -89,6 +89,7 @@ export default function Create() {
           carbs: Number(carbs),
           fats: Number(fat),
         });
+        navigation.goBack();
       }}
     />
   );
