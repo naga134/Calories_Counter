@@ -4,6 +4,7 @@ import { StyleProp, TextStyle } from 'react-native';
 import { Colors } from 'react-native-ui-lib';
 
 interface CustomNumberInputProps {
+  placeholderTextColor?: string;
   style?: StyleProp<TextStyle>;
   value: string;
   setValue: React.Dispatch<React.SetStateAction<string>>;
@@ -12,6 +13,7 @@ interface CustomNumberInputProps {
 }
 
 export default function CustomNumberInput({
+  placeholderTextColor = Colors.grey40,
   style,
   value,
   setValue,
@@ -31,7 +33,7 @@ export default function CustomNumberInput({
       style={style}
       keyboardType="number-pad"
       placeholder={placeholder}
-      placeholderTextColor={Colors.grey40}
+      placeholderTextColor={placeholderTextColor}
       maxLength={maxLength}
       value={value}
       onChangeText={(text) =>

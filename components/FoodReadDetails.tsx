@@ -190,8 +190,13 @@ function KcalsOverview({ amount }: { amount: number }) {
   );
 }
 
+interface WeightScaleProps {
+  measure: number; // The current weight or amount to display.
+  setMeasure: React.Dispatch<React.SetStateAction<number>>; // State updater for the `measure` value.
+}
+
 // change later: use TextInput instead to limit max characters
-function WeightScale({ measure, setMeasure }) {
+function WeightScale({ measure, setMeasure }: WeightScaleProps) {
   return (
     <View style={styles.weightScale}>
       <IconSVG name="gauge-solid" color={Colors.violet70} width={32} />
@@ -206,9 +211,10 @@ function WeightScale({ measure, setMeasure }) {
         {/* suggestion: use TextInput instead: https://www.ifelsething.com/post/limit-text-length-react-native-text-input/ */}
         {/* and customize the onChangeText function */}
         <CustomNumberInput
+          placeholderTextColor={Colors.violet50}
           placeholder="0.00"
-          value={measure}
-          setValue={setMeasure}
+          value={measure.toString()}
+          setValue={(value) => setMeasure(Number(value))}
           style={{
             backgroundColor: Colors.violet70,
             width: 80,
