@@ -117,11 +117,13 @@ export default function FoodWriteDetails({
             placeholder="New Food"
             placeholderTextColor={Colors.violet40}
           />
-          {!disableNameEdit && <IconSVG
-            style={{ position: 'absolute', right: 12 }}
-            name="feather-pointed-solid"
-            color="white"
-          />}
+          {!disableNameEdit && (
+            <IconSVG
+              style={{ position: 'absolute', right: 12 }}
+              name="feather-pointed-solid"
+              color="white"
+            />
+          )}
         </View>
         {/* Whole thing */}
         <View
@@ -429,5 +431,6 @@ const styles = StyleSheet.create({
   inputFieldTextInput: {
     ...baseStyles.inputFieldTextBase,
     color: Colors.violet30,
+    padding: 0,
   },
 });

@@ -26,6 +26,8 @@ export default function CustomNumberInput({
 
   return (
     <TextInput
+      textAlign={'center'}
+      textAlignVertical={'bottom'}
       style={style}
       keyboardType="number-pad"
       placeholder={placeholder}

@@ -16,6 +16,8 @@ import UnitPicker from './UnitPicker';
 import { RootStackParamList } from 'navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getAllUnits } from 'database/queries/unitsQueries';
+import CustomNumberInput from './CustomNumberInput';
+import { measure } from 'react-native-reanimated';
 
 export default function FoodReadDetails({
   food,
@@ -101,7 +103,7 @@ export default function FoodReadDetails({
       {/* Amount and Unit section */}
       <View style={styles.midSection}>
         <KcalsOverview amount={kcals} />
-        <WeightScale setAmount={setAmount} />
+        <WeightScale measure={amount} setMeasure={setAmount} />
         <UnitPicker
           units={units}
           showIcon
@@ -189,7 +191,7 @@ function KcalsOverview({ amount }: { amount: number }) {
 }
 
 // change later: use TextInput instead to limit max characters
-function WeightScale({ setAmount }) {
+function WeightScale({ measure, setMeasure }) {
   return (
     <View style={styles.weightScale}>
       <IconSVG name="gauge-solid" color={Colors.violet70} width={32} />
@@ -203,27 +205,19 @@ function WeightScale({ setAmount }) {
         {/* TODO: limit the amount of digits accepted */}
         {/* suggestion: use TextInput instead: https://www.ifelsething.com/post/limit-text-length-react-native-text-input/ */}
         {/* and customize the onChangeText function */}
-        <NumberInput
-          onChangeNumber={(number) => {
-            if (number.type === 'valid') {
-              setAmount(number.number);
-            }
-          }}
-          fractionDigits={2}
-          // TODO: handle text overflow
-          containerStyle={{
+        <CustomNumberInput
+          placeholder="0.00"
+          value={measure}
+          setValue={setMeasure}
+          style={{
             backgroundColor: Colors.violet70,
             width: 80,
             borderRadius: 8,
+            padding: 0,
             height: 32,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          textFieldProps={{
-            style: {
-              color: Colors.violet20,
-              fontSize: 18,
-            },
+            color: Colors.violet20,
+            fontSize: 18,
+            textAlignVertical: 'center',
           }}
         />
         <IconSVG
