@@ -1,10 +1,20 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Food, Nutritable } from 'database/types';
 import { useEffect, useMemo, useState } from 'react';
-import { Colors, Icon, NumberInput, Text, TextField, View, WheelPicker } from 'react-native-ui-lib';
+import {
+  Button,
+  Colors,
+  Dialog,
+  Icon,
+  NumberInput,
+  Text,
+  TextField,
+  View,
+  WheelPicker,
+} from 'react-native-ui-lib';
 
 // import WheelPicker from '@quidone/react-native-wheel-picker';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import IconSVG from './icons/IconSVG';
 import AnimatedCircleButton from './AnimatedCircleButton';
 import { useColors } from 'context/ColorContext';
@@ -91,83 +101,91 @@ export default function FoodReadDetails({
     (unit) => !units.some((usedUnit) => usedUnit.symbol === unit.symbol)
   );
 
+  const [isDialogVisible, setIsDialogVisibile] = useState(false);
+  const showDialog = () => setIsDialogVisibile(true);
+
   return (
-    // Whole thing
-    <View style={styles.cardLayout}>
-      {/* TOP SECTION: Macros Overview */}
-      <View style={styles.topSection}>
-        {macroItems.map((macro, i) => (
-          <MacroQuantity key={macro.iconName} iconName={macro.iconName} amount={macro.amount} />
-        ))}
+    <>
+      <AlertDialog visible={isDialogVisible} dismiss={() => setIsDialogVisibile(false)} />
+      {/* Whole thing */}
+      <View style={styles.cardLayout}>
+        {/* TOP SECTION: Macros Overview */}
+        <View style={styles.topSection}>
+          {macroItems.map((macro, i) => (
+            <MacroQuantity key={macro.iconName} iconName={macro.iconName} amount={macro.amount} />
+          ))}
+        </View>
+        {/* Amount and Unit section */}
+        <View style={styles.midSection}>
+          <KcalsOverview amount={kcals} />
+          <WeightScale measure={amount} setMeasure={setAmount} />
+          <UnitPicker
+            units={units}
+            showIcon
+            showIndicator
+            backgroundColor={Colors.violet70}
+            activeTextColor={Colors.violet20}
+            inactiveTextColor={Colors.violet50}
+            onChange={(unitId: number) => setSelectedUnitId(unitId)}
+          />
+        </View>
+        {/* Action buttons section */}
+        <View style={styles.bottomSection}>
+          {/* EDIT NUTRITABLE BUTTON */}
+          <AnimatedCircleButton
+            onPress={() => navigation.navigate('Edit', { nutritable: selectedNutritable!, food })}
+            buttonStyle={styles.circleButton}
+            iconProps={{
+              style: { marginLeft: 6 },
+              name: 'solid-square-list-pen',
+              width: 32,
+              color: Colors.white,
+            }}
+          />
+          {/* DELETE NUTRITABLE BUTTON */}
+          <AnimatedCircleButton
+            onPress={() => {
+              setIsDialogVisibile(true);
+            }}
+            buttonStyle={styles.circleButton}
+            iconProps={{
+              style: { marginLeft: 3 },
+              name: 'solid-square-list-circle-xmark',
+              width: 32,
+              color: Colors.white,
+            }}
+          />
+          {/* ADD NUTRITABLE BUTTON */}
+          <AnimatedCircleButton
+            disabled={availableUnits.length === 0}
+            onPress={() =>
+              navigation.navigate('Add', {
+                food,
+                units: availableUnits,
+              })
+            }
+            buttonStyle={styles.circleButton}
+            iconProps={{
+              style: { marginLeft: 3 },
+              name: 'solid-square-list-circle-plus',
+              width: 32,
+              color: Colors.white,
+            }}
+          />
+          {/* ADD TO MEAL BUTTON */}
+          <AnimatedCircleButton
+            onPress={() => {}}
+            buttonStyle={styles.circleButton}
+            iconProps={{
+              name: 'utensils-solid',
+              style: { marginRight: 1 },
+              width: 26,
+              color: Colors.white,
+            }}
+          />
+        </View>
       </View>
-      {/* Amount and Unit section */}
-      <View style={styles.midSection}>
-        <KcalsOverview amount={kcals} />
-        <WeightScale measure={amount} setMeasure={setAmount} />
-        <UnitPicker
-          units={units}
-          showIcon
-          showIndicator
-          backgroundColor={Colors.violet70}
-          activeTextColor={Colors.violet20}
-          inactiveTextColor={Colors.violet50}
-          onChange={(unitId: number) => setSelectedUnitId(unitId)}
-        />
-      </View>
-      {/* Action buttons section */}
-      <View style={styles.bottomSection}>
-        {/* EDIT NUTRITABLE BUTTON */}
-        <AnimatedCircleButton
-          onPress={() => navigation.navigate('Edit', { nutritable: selectedNutritable!, food })}
-          buttonStyle={styles.circleButton}
-          iconProps={{
-            style: { marginLeft: 6 },
-            name: 'solid-square-list-pen',
-            width: 32,
-            color: Colors.white,
-          }}
-        />
-        {/* DELETE NUTRITABLE BUTTON */}
-        <AnimatedCircleButton
-          onPress={() => {}}
-          buttonStyle={styles.circleButton}
-          iconProps={{
-            style: { marginLeft: 3 },
-            name: 'solid-square-list-circle-xmark',
-            width: 32,
-            color: Colors.white,
-          }}
-        />
-        {/* ADD NUTRITABLE BUTTON */}
-        <AnimatedCircleButton
-          disabled={availableUnits.length === 0}
-          onPress={() =>
-            navigation.navigate('Add', {
-              food,
-              units: availableUnits,
-            })
-          }
-          buttonStyle={styles.circleButton}
-          iconProps={{
-            style: { marginLeft: 3 },
-            name: 'solid-square-list-circle-plus',
-            width: 32,
-            color: Colors.white,
-          }}
-        />
-        {/* ADD TO MEAL BUTTON */}
-        <AnimatedCircleButton
-          onPress={() => {}}
-          buttonStyle={styles.circleButton}
-          iconProps={{
-            name: 'utensils-solid',
-            style: { marginRight: 1 },
-            width: 26,
-            color: Colors.white,
-          }}
-        />
-      </View>
-    </View>
+    </>
   );
 }
 
@@ -259,6 +277,100 @@ function MacroQuantity({
         {toCapped(amount, 2)}g
       </Text>
     </View>
+  );
+}
+
+function AlertDialog({ visible, dismiss }: { visible: boolean; dismiss: () => void }) {
+  return (
+    <Dialog
+      bottom
+      onDismiss={dismiss}
+      visible={visible}
+      containerStyle={{
+        alignItems: 'center',
+        marginBottom: 32,
+        paddingHorizontal: 0,
+        gap: 12,
+      }}>
+      {/* Alert */}
+      <View
+        style={{
+          width: '80%',
+          padding: 8,
+          borderRadius: 6,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 16,
+          backgroundColor: Colors.violet30,
+        }}>
+        <IconSVG name="triangle-exclamation-solid" width={32} color={Colors.white} />
+        <Text style={{ flex: 1, flexWrap: 'wrap', fontSize: 16, color: Colors.white }}>
+          This action is permanent and cannot be undone.
+        </Text>
+      </View>
+      {/* Main Container */}
+      <View style={{ backgroundColor: 'white', borderRadius: 12 }}>
+        {/* Title */}
+        <View
+          style={{
+            width: '100%',
+            backgroundColor: Colors.violet30,
+            paddingVertical: 8,
+            borderRadius: 12,
+            borderBottomEndRadius: 0,
+            borderBottomStartRadius: 0,
+          }}>
+          <Text style={{ fontSize: 18, color: 'white', textAlign: 'center' }}>
+            Delete this nutritional table?
+          </Text>
+        </View>
+        {/* Content */}
+        <View style={{ paddingHorizontal: 26, paddingVertical: 12 }}>
+          <Text style={{ fontSize: 16, textAlign: 'center' }}>
+            Any journal entries referencing this nutritional table will remain unchanged but can no
+            longer be edited.
+          </Text>
+        </View>
+        {/* Buttons */}
+        <View
+          style={{
+            flexDirection: 'row',
+            gap: 1,
+            backgroundColor: Colors.violet50,
+            borderBottomLeftRadius: 12,
+            borderBottomRightRadius: 12,
+          }}>
+          {/* Cancel button */}
+          <TouchableOpacity
+            onPress={dismiss}
+            style={{
+              paddingVertical: 8,
+              flex: 1,
+              backgroundColor: Colors.violet70,
+              borderBottomLeftRadius: 12,
+            }}>
+            <Text style={{ fontSize: 16, color: Colors.violet30, textAlign: 'center' }}>
+              Cancel
+            </Text>
+          </TouchableOpacity>
+          {/* Delete button */}
+          <TouchableOpacity
+            onPress={() => {
+              // Delete logic
+            }}
+            style={{
+              paddingVertical: 8,
+              flex: 1,
+              backgroundColor: Colors.violet70,
+              borderBottomRightRadius: 12,
+            }}>
+            <Text style={{ fontSize: 16, color: Colors.violet30, textAlign: 'center' }}>
+              Delete
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Dialog>
   );
 }
 
