@@ -1,7 +1,7 @@
 import { HeaderBackButton } from '@react-navigation/elements';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Food, Nutritable, Unit } from 'database/types';
+import { Food, Meal, Nutritable, Unit } from 'database/types';
 import React from 'react';
 import { View, Text, Button, StyleSheet, Modal as RNModal } from 'react-native';
 import Add from 'screens/Add';
@@ -9,14 +9,24 @@ import Create from 'screens/Create';
 import Edit from 'screens/Edit';
 
 import Home from 'screens/Home';
-import FoodsList from 'screens/List';
+import List from 'screens/List';
+import Read from 'screens/Read';
 
 export type RootStackParamList = {
+  // Displays entries, daily meals and daily nutritional overview. Allows:
+  // - Changing selected date;
+  // - Adding an entry to a meal.
   Home: undefined;
-  List: { title: string }; // List existing foods
-  Create: undefined; // Create new food
-  Add: { food: Food; units: Unit[] }; // Add nutritional table
-  Edit: { nutritable: Nutritable; food: Food }; // Edit nutritional table
+  // Lists existing foods.
+  List: { meal: Meal };
+  // Creates food or nutritable.
+  Create: { food?: Food; units?: Unit[] }; // -> food & units ? create nutritable : create food
+  // Displays food and its nutritables, allows:
+  // - Editing the food's name;
+  // - Adding a specified amount of said food to a previously selected meal.
+  Read: { meal: Meal; food: Food };
+  // Allows editing of nutritional table.
+  Update: { nutritable: Nutritable; food: Food };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -28,9 +38,17 @@ const RootStack = () => {
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen
           name="List"
-          component={FoodsList}
+          component={List}
           options={({ route }) => ({
-            title: `Add to ${route.params.title}`, // Set the title dynamically
+            title: `Add to ${route.params.meal.name}`, // Set the title dynamically
+            animation: 'slide_from_right',
+          })}
+        />
+        <Stack.Screen
+          name="Read"
+          component={Read}
+          options={({ route }) => ({
+            title: `Specify amount`, // Set the title dynamically
             animation: 'slide_from_right',
           })}
         />
@@ -42,8 +60,8 @@ const RootStack = () => {
             animation: 'slide_from_right',
           }}
         />
-        <Stack.Screen
-          name="Add"
+        {/* <Stack.Screen
+          name="CreateNutritable"
           component={Add}
           // TODO: - pass food and existing nutritables as parameters
           // - set title dynamically: "Add nutritional table to [foodname]
@@ -51,9 +69,9 @@ const RootStack = () => {
             title: 'Add nutritional table',
             animation: 'slide_from_right',
           }}
-        />
+        /> */}
         <Stack.Screen
-          name="Edit"
+          name="Update"
           component={Edit}
           // TODO: - pass food and existing nutritables as parameters
           // - set title dynamically: "Edit [foodname]'s nutritional table
@@ -66,27 +84,5 @@ const RootStack = () => {
     </NavigationContainer>
   );
 };
-{
-  /* <ScreenStackHeaderBackButtonImage */
-}
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  // modalContainer: {
-  //   width: '100%',
-  //   height: 300, // Set the height to take up part of the screen
-  //   backgroundColor: 'white',
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   borderTopLeftRadius: 20,
-  //   borderTopRightRadius: 20,
-  //   padding: 20,
-  // },
-});
 
 export default RootStack;

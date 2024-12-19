@@ -1,6 +1,6 @@
 import { TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import Animated, { AnimatedStyle } from 'react-native-reanimated';
-import IconSVG, { IconSVGProps } from './icons/IconSVG';
+import IconSVG, { IconSVGProps } from '../../Shared/icons/IconSVG';
 import { Colors } from 'react-native-ui-lib';
 
 type AnimatedCircleButtonProps = {

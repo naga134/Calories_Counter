@@ -1,12 +1,12 @@
 import { Text, View } from "react-native-ui-lib";
-import IconSVG from "./icons/IconSVG";
+import IconSVG from "../../Shared/icons/IconSVG";
 
 type MacroListItemProps = {
   color: string;
   macro: string;
 };
 
-export default function MacroListItem({ color, macro }: MacroListItemProps) {
+export default function MacroLegendItem({ color, macro }: MacroListItemProps) {
   return (
     <View
       style={{

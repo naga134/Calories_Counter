@@ -2,15 +2,14 @@ import { useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 import { ExpandableSection, Text, View, Colors, Button } from 'react-native-ui-lib';
 
-import IconSVG from './icons/IconSVG';
+import IconSVG from '../../Shared/icons/IconSVG';
 import RotatingCaret from './RotatingCaret';
-// import { Link, useNavigation } from "expo-router";
-import { Pressable } from 'react-native-gesture-handler';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from 'navigation';
+import { Meal } from 'database/types';
 
 type MealDrawerProps = {
-  mealName: string;
+  meal: Meal;
 };
 
 type DrawerHeaderProps = {
@@ -19,18 +18,18 @@ type DrawerHeaderProps = {
 };
 
 type DrawerBodyProps = {
-  mealName: string;
+  meal: Meal;
 };
 
-export default function MealDrawer({ mealName }: MealDrawerProps) {
+export default function MealDrawer({ meal }: MealDrawerProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <ExpandableSection
       expanded={expanded}
       onPress={() => setExpanded(!expanded)}
-      sectionHeader={<DrawerHeader mealName={mealName} expanded={expanded} />}>
-      <DrawerBody mealName={mealName} />
+      sectionHeader={<DrawerHeader mealName={meal.name} expanded={expanded} />}>
+      <DrawerBody meal={meal} />
     </ExpandableSection>
   );
 }
@@ -65,14 +64,14 @@ function DrawerHeader({ expanded, mealName }: DrawerHeaderProps) {
 
 // This is the body for each meal's drawer.
 // It should contain: each food, its amount, its caloric total; "add food" button.
-function DrawerBody({ mealName }: DrawerBodyProps) {
+function DrawerBody({ meal }: DrawerBodyProps) {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   return (
     <View style={styles.sectionBody}>
       {/* Each entry COMES HERE*/}
       <TouchableOpacity
-        onPress={() => navigation.navigate('List', { title: mealName })}
+        onPress={() => navigation.navigate('List', { meal })}
         style={{
           flex: 1,
           width: 40,

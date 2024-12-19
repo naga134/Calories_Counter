@@ -15,19 +15,20 @@ import {
 
 // import WheelPicker from '@quidone/react-native-wheel-picker';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import IconSVG from './icons/IconSVG';
-import AnimatedCircleButton from './AnimatedCircleButton';
+import IconSVG from './Shared/icons/IconSVG';
+import AnimatedCircleButton from './Screens/List/AnimatedCircleButton';
 import { useColors } from 'context/ColorContext';
 import toSQLiteParams from 'utils/toSQLiteParams';
 import { getNutritablesByFood } from 'database/queries/nutritablesQueries';
 import { useSQLiteContext } from 'expo-sqlite';
 import toCapped from 'utils/toCapped';
-import UnitPicker from './UnitPicker';
+import UnitPicker from './Shared/UnitPickerOLD';
 import { RootStackParamList } from 'navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getAllUnits } from 'database/queries/unitsQueries';
 import CustomNumberInput from './CustomNumberInput';
 import { measure } from 'react-native-reanimated';
+import { Portal } from '@headlessui/react';
 
 export default function FoodReadDetails({
   food,
@@ -56,7 +57,9 @@ export default function FoodReadDetails({
   });
 
   const units = nutritables.map((nutritable) => nutritable.unit);
-  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(units[0].id);
+
+  const initialSelectedUnitId = units.length > 0 ? units[0].id : null;
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(initialSelectedUnitId);
 
   useEffect(() => {
     if (units.length > 0 && selectedUnitId === null) {
@@ -73,7 +76,7 @@ export default function FoodReadDetails({
 
   const selectedNutritable = useMemo(() => {
     return nutritables.find((nutritable) => nutritable.unit.id === selectedUnitId);
-  }, [units, selectedUnitId]);
+  }, [nutritables, selectedUnitId]);
 
   const macroItems = [
     { color: colors.get('fat'), iconName: 'bacon-solid', amount: fats },
@@ -89,12 +92,15 @@ export default function FoodReadDetails({
     },
   ] as const;
 
+  // console.log('selectedNutritable: nutritable no. ' + selectedNutritable.id);
+
   // (!!!) This is sometimes breaking when the user tries to select a newly-created nutritable
   useEffect(() => {
-    setProtein((amount / selectedNutritable!.baseMeasure) * selectedNutritable!.protein);
-    setFats((amount / selectedNutritable!.baseMeasure) * selectedNutritable!.fats);
-    setCarbs((amount / selectedNutritable!.baseMeasure) * selectedNutritable!.carbs);
-    setKcals((amount * selectedNutritable!.kcals) / selectedNutritable!.baseMeasure);
+    if (!selectedNutritable) return;
+    setProtein((amount / selectedNutritable.baseMeasure) * selectedNutritable.protein);
+    setFats((amount / selectedNutritable.baseMeasure) * selectedNutritable.fats);
+    setCarbs((amount / selectedNutritable.baseMeasure) * selectedNutritable.carbs);
+    setKcals((amount * selectedNutritable.kcals) / selectedNutritable.baseMeasure);
   }, [amount, selectedNutritable]);
 
   const availableUnits = allUnits.filter(
@@ -102,11 +108,19 @@ export default function FoodReadDetails({
   );
 
   const [isDialogVisible, setIsDialogVisibile] = useState(false);
-  const showDialog = () => setIsDialogVisibile(true);
 
   return (
     <>
-      <AlertDialog visible={isDialogVisible} dismiss={() => setIsDialogVisibile(false)} />
+      {/* <Portal> */}
+        {selectedNutritable && (
+          <AlertDialog
+            key={selectedNutritable.id}
+            visible={isDialogVisible}
+            dismiss={() => setIsDialogVisibile(false)}
+            nutritableId={selectedNutritable.id}
+          />
+        )}
+      {/* </Portal> */}
       {/* Whole thing */}
       <View style={styles.cardLayout}>
         {/* TOP SECTION: Macros Overview */}
@@ -133,7 +147,7 @@ export default function FoodReadDetails({
         <View style={styles.bottomSection}>
           {/* EDIT NUTRITABLE BUTTON */}
           <AnimatedCircleButton
-            onPress={() => navigation.navigate('Edit', { nutritable: selectedNutritable!, food })}
+            onPress={() => navigation.navigate('Edit', { nutritable: selectedNutritable, food })}
             buttonStyle={styles.circleButton}
             iconProps={{
               style: { marginLeft: 6 },
@@ -145,7 +159,9 @@ export default function FoodReadDetails({
           {/* DELETE NUTRITABLE BUTTON */}
           <AnimatedCircleButton
             onPress={() => {
-              setIsDialogVisibile(true);
+              if (selectedNutritable) {
+                setIsDialogVisibile(true);
+              }
             }}
             buttonStyle={styles.circleButton}
             iconProps={{
@@ -280,7 +296,21 @@ function MacroQuantity({
   );
 }
 
-function AlertDialog({ visible, dismiss }: { visible: boolean; dismiss: () => void }) {
+function AlertDialog({
+  visible,
+  dismiss,
+  nutritableId,
+}: {
+  visible: boolean;
+  dismiss: () => void;
+  nutritableId: number;
+}) {
+  // console.log("dialog opened!")
+  console.log('DIALOG LOGS');
+  console.log(visible);
+  console.log(dismiss);
+  console.log('nutritable inside the dialog: ' + nutritableId);
+
   return (
     <Dialog
       bottom
@@ -357,6 +387,7 @@ function AlertDialog({ visible, dismiss }: { visible: boolean; dismiss: () => vo
           <TouchableOpacity
             onPress={() => {
               // Delete logic
+              console.log(nutritableId);
             }}
             style={{
               paddingVertical: 8,

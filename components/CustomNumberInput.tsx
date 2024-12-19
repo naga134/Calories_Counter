@@ -4,21 +4,19 @@ import { StyleProp, TextStyle } from 'react-native';
 import { Colors } from 'react-native-ui-lib';
 
 interface CustomNumberInputProps {
-  placeholderTextColor?: string;
   style?: StyleProp<TextStyle>;
   value: string;
-  setValue: React.Dispatch<React.SetStateAction<string>>;
-  maxLength?: number;
-  placeholder: string;
+  onChange?: (text: string) => void;
+  maxLength: number;
+  placeholder?: string;
 }
 
+//
 export default function CustomNumberInput({
-  placeholderTextColor = Colors.grey40,
-  style,
   value,
-  setValue,
-  maxLength = 7,
-  placeholder,
+  onChange,
+  maxLength,
+  placeholder = '0.00',
 }: CustomNumberInputProps) {
   // Using useMemo to prevent the regex object from being recreated at every render
   const dynamicRegex = useMemo(() => {
@@ -28,23 +26,42 @@ export default function CustomNumberInput({
 
   return (
     <TextInput
+      // Functionality
+      maxLength={maxLength}
+      keyboardType="number-pad"
+      // Style
       textAlign={'center'}
       textAlignVertical={'bottom'}
-      style={style}
-      keyboardType="number-pad"
+      style={{
+        // positioning
+        flex: 1,
+        padding: 0,
+        textAlign: 'center',
+        textAlignVertical: 'center',
+        // styling
+        fontSize: 18,
+        color: Colors.grey40,
+      }}
+      // Placeholder
       placeholder={placeholder}
-      placeholderTextColor={placeholderTextColor}
-      maxLength={maxLength}
+      placeholderTextColor={Colors.grey40}
+      // I/O
       value={value}
-      onChangeText={(text) =>
-        setValue(
-          text
-            .replace(/[^0-9.]/g, '') // Step 1: Remove non-digit and non-dot characters
-            .replace(/(\..*?)\./g, '$1') // Step 2: Allow only one dot
-            .replace(/^0+(?=\d)/, '') // Step 3: Remove leading zeros before other digits
-            .replace(dynamicRegex, '$1$2') // Step 4: Limit to 4 digits before dot and 2 after
-        )
-      }
+      onChangeText={(text) => {
+        const treatedText = text
+          // 1: Allow only digits and dots
+          .replace(/[^0-9.]/g, '')
+          // 2: Allow only one dot
+          .replace(/(\..*?)\./g, '$1')
+          // 3: Remove redundant leading zeros
+          .replace(/^0+(?=\d)/, '')
+          // 4: Limit to 4 digits before dot and 2 after
+          .replace(dynamicRegex, '$1$2');
+
+        if (onChange) {
+          return onChange(treatedText);
+        }
+      }}
     />
   );
 }

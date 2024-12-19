@@ -1,5 +1,5 @@
 import { GestureResponderEvent, Pressable } from 'react-native';
-import IconSVG from './icons/IconSVG';
+import IconSVG from './Shared/icons/IconSVG';
 import { Colors, Text } from 'react-native-ui-lib';
 
 type MacroOverviewProps = {

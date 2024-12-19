@@ -1,10 +1,9 @@
 import { getAllFoods } from 'database/queries/foodsQueries';
 import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
-import { FlatList, Pressable, ScrollView } from 'react-native-gesture-handler';
-import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
+import { FlatList } from 'react-native-gesture-handler';
+import { useQuery } from '@tanstack/react-query';
 import FoodListItem from 'components/FoodsListItem';
 import { Colors, TextField, View } from 'react-native-ui-lib';
-import IconSVG from 'components/icons/IconSVG';
 import { RootStackParamList } from 'navigation/index';
 
 import Animated, {
@@ -15,22 +14,23 @@ import Animated, {
   Easing,
   withDelay,
   cancelAnimation,
-  interpolateColor,
 } from 'react-native-reanimated';
 
 import { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
-import { StackActions, StaticScreenProps, useNavigation } from '@react-navigation/native';
-import { Meal } from 'database/types';
+import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import AnimatedCircleButton from 'components/AnimatedCircleButton';
+import AnimatedCircleButton from 'components/Screens/List/AnimatedCircleButton';
+import { Meal } from 'database/types';
 
 type Props = StaticScreenProps<{
-  title: string;
+  meal: Meal;
 }>;
 
-export default function FoodsList({ route }: Props) {
+export default function List({ route }: Props) {
   const database: SQLiteDatabase = useSQLiteContext();
+
+  const meal = route.params.meal;
 
   // Retrieving the list of daily meals from the database
   const {
@@ -82,12 +82,7 @@ export default function FoodsList({ route }: Props) {
         renderItem={({ item: food, index: index }) => {
           return (
             // searchResults.some((result) => result.id === food.id) && (
-            <FoodListItem
-              food={food}
-              index={index}
-              scrollViewRef={scrollViewRef}
-              setScrollEnabled={setScrollEnabled}
-            />
+            <FoodListItem food={food} meal={meal} />
             // )
           );
         }}
@@ -127,14 +122,6 @@ function BottomBar({ disabled, searchParams, setSearchParams }: BottomBarProps) 
 
   const rollAnim = useSharedValue(0);
   const expandAnim = useSharedValue(0);
-  const disabledAnim = useSharedValue(disabled ? 1 : 0);
-
-  useEffect(() => {
-    disabledAnim.value = withTiming(disabled ? 1 : 0, {
-      duration: 300,
-      easing: Easing.inOut(Easing.cubic),
-    });
-  }, [disabled]);
 
   useEffect(() => {
     const toValue = expanded ? 1 : 0;
@@ -157,7 +144,6 @@ function BottomBar({ disabled, searchParams, setSearchParams }: BottomBarProps) 
   useEffect(() => {
     return () => {
       // Cancel the animation to prevent it from running after unmount
-      cancelAnimation(disabledAnim);
       cancelAnimation(rollAnim);
       cancelAnimation(expandAnim);
     };
@@ -170,7 +156,6 @@ function BottomBar({ disabled, searchParams, setSearchParams }: BottomBarProps) 
 
     return {
       right: interpolate(rollAnim.value, [0, 1], [64, 8]),
-      backgroundColor: interpolateColor(disabledAnim.value, [0, 1], ['#5A48F5', '#A6ACB1']),
       transform: [{ rotate: `${rotation}deg` }],
     };
   });
@@ -179,7 +164,6 @@ function BottomBar({ disabled, searchParams, setSearchParams }: BottomBarProps) 
     const rotation = interpolate(rollAnim.value, [0, 1], [0, 180]);
     return {
       right: interpolate(rollAnim.value, [0, 1], [8, -48]),
-      backgroundColor: interpolateColor(disabledAnim.value, [0, 1], ['#5A48F5', '#A6ACB1']),
       transform: [{ rotate: `${rotation}deg` }],
     };
   });
@@ -188,7 +172,6 @@ function BottomBar({ disabled, searchParams, setSearchParams }: BottomBarProps) 
     const borderRadius = interpolate(expandAnim.value, [0, 1], [0, 100]);
     return {
       width: interpolate(expandAnim.value, [0, 1], [0, screenWidth - 16]),
-      backgroundColor: interpolateColor(disabledAnim.value, [0, 1], ['#5A48F5', '#A6ACB1']),
       borderTopRightRadius: borderRadius,
       borderBottomRightRadius: borderRadius,
       right: interpolate(
@@ -229,7 +212,7 @@ function BottomBar({ disabled, searchParams, setSearchParams }: BottomBarProps) 
       {/* Add Food Button */}
       <AnimatedCircleButton
         disabled={disabled}
-        onPress={() => navigation.navigate('Create')}
+        onPress={() => navigation.navigate('Create', {})}
         buttonStyle={[styles.addFoodButton, addButtonAnimatedStyle]}
         iconProps={{
           style: { margin: 'auto' },

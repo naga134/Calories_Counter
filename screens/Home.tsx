@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { deleteDatabaseSync, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Colors, Icon, Text, View } from 'react-native-ui-lib';
@@ -13,11 +13,11 @@ import { formatDate } from 'utils/formatDate';
 import getAllMeals from 'database/queries/mealsQueries';
 
 // Components
-import PieChart from 'components/PieChart';
-import IconSVG from 'components/icons/IconSVG';
-import MealDrawer from 'components/MealDrawer';
+import PieChart from 'components/Screens/Home/PieChart';
+import IconSVG from 'components/Shared/icons/IconSVG';
+import MealDrawer from 'components/Screens/Home/MealDrawer';
 import MacroOverview from 'components/MacroOverview';
-import MacroListItem from 'components/MacroListItem';
+import MacroLegendItem from 'components/Screens/List/MacroLegendItem';
 
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
@@ -72,10 +72,6 @@ export default function Home() {
     queryFn: () => getAllMeals(database),
     initialData: [],
   });
-
-  // dataclose()
-  // database.closeSync();
-  // deleteDatabaseSync('appDatabase.db');
 
   const [fat, setFat] = useState(0);
   const [protein, setProtein] = useState(0);
@@ -141,14 +137,11 @@ export default function Home() {
 
       <ScrollView
         contentContainerStyle={{
-          width: screenWidth,
-          justifyContent: 'center',
           alignItems: 'center',
         }}>
         {/* Top-level macronutrients' overview */}
         <View
           style={{
-            flex: 1,
             flexDirection: 'row',
           }}>
           {macroItems.map((macro, index) => (
@@ -161,29 +154,28 @@ export default function Home() {
             />
           ))}
         </View>
-        {/* Piechart and Legend */}
+        {/* Piechart and Legend Box*/}
         <View
           style={{
-            flex: 1,
             flexDirection: 'row',
             width: screenWidth * 0.8,
             gap: 24,
-            alignItems: 'center',
             marginVertical: 24,
           }}>
+          {/* Chart */}
           <PieChart data={chartData} colors={chartColors} innerRadius={50} outerRadius={80} />
-          {/* TODO: move this into its dedicated component for code cleanup */}
+          {/* Chart's legend */}
           <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-            <MacroListItem macro="Fat" color={colors.get('fat')} />
-            <MacroListItem macro="Carbohydrates" color={colors.get('carbohydrates')} />
-            <MacroListItem macro="Protein" color={colors.get('protein')} />
-            <MacroListItem macro="Calories" color={colors.get('calories')} />
+            <MacroLegendItem macro="Fat" color={colors.get('fat')} />
+            <MacroLegendItem macro="Carbohydrates" color={colors.get('carbohydrates')} />
+            <MacroLegendItem macro="Protein" color={colors.get('protein')} />
+            <MacroLegendItem macro="Calories" color={colors.get('calories')} />
           </View>
         </View>
-
+        {/* Meals' List */}
         <View style={{ gap: 10, paddingTop: 10, paddingBottom: 40 }}>
           {meals.map((meal) => (
-            <MealDrawer key={meal.id} mealName={meal.name} />
+            <MealDrawer key={meal.id} meal={meal} />
           ))}
         </View>
       </ScrollView>

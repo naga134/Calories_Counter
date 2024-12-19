@@ -1,6 +1,6 @@
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import IconSVG from './icons/IconSVG';
 import { Colors } from 'react-native-ui-lib';
+import IconSVG from 'components/Shared/icons/IconSVG';
 import { useEffect } from 'react';
 
 interface RotatingCaretProps {
