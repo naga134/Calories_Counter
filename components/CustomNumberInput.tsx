@@ -40,7 +40,7 @@ export default function CustomNumberInput({
         textAlignVertical: 'center',
         // styling
         fontSize: 18,
-        color: Colors.grey40,
+        color: Colors.grey30,
       }}
       // Placeholder
       placeholder={placeholder}

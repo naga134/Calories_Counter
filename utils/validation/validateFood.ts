@@ -18,30 +18,30 @@ export const validateFoodInputs = ({
     // Validates name
     if (name.trim() === '') {
         errors.push({
-            errorType: ErrorType.Error,
-            errorMessage: 'Name cannot be empty.',
+            type: ErrorType.Error,
+            message: 'Name cannot be empty.',
         });
     } else if (existingNames.includes(name.trim())) {
         errors.push({
-            errorType: ErrorType.Error,
-            errorMessage: `There already exists a food named "${name}", foods must be uniquely named.`,
+            type: ErrorType.Error,
+            message: `There already exists a food named "${name}", foods must be uniquely named.`,
         });
     }
 
     // Validates measure
     if (measure.trim() === '' || measureValue <= 0) {
         errors.push({
-            errorType: ErrorType.Error,
-            errorMessage: 'The measure field can neither be empty nor zero.',
+            type: ErrorType.Error,
+            message: 'The measure field can neither be empty nor zero.',
         });
     }
 
     // Validates kcals
-    const margin = expectedKcalsValue * 0.05;
+    const margin = expectedKcalsValue * 0.05; // Allows for a margin of error of 5% 
     if (Math.abs(expectedKcalsValue - kcalsValue) > margin) {
         errors.push({
-            errorType: ErrorType.Warning,
-            errorMessage: `Total calories and macros mismatch. Expected calories: ${expectedKcals}. Informed calories: ${kcalsValue}`,
+            type: ErrorType.Warning,
+            message: `Total calories and macros mismatch.\nExpected calories: ${expectedKcals} kcal\nInformed calories: ${kcalsValue} kcal`,
         });
     }
 
@@ -53,9 +53,9 @@ export const validateFoodInputs = ({
 };
 
 function containsErrors(errors: ValidationError[]) {
-    return errors.some((error) => error.errorType === "error")
+    return errors.some((error) => error.type === "error")
 }
 
 function containsWarnings(errors: ValidationError[]) {
-    return errors.some((error) => error.errorType === "warning")
+    return errors.some((error) => error.type === "warning")
 }

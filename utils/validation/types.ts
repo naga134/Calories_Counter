@@ -16,8 +16,8 @@ export type Validation = {
 }
 
 export interface ValidationError {
-    errorType: ErrorType;
-    errorMessage: string;
+    type: ErrorType;
+    message: string;
 }
 
 export interface validateFoodInputsParams {

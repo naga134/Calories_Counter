@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, TextInput } from 'react-native';
-import {
-  Button,
-  Colors,
-  Dialog,
-  KeyboardAwareScrollView,
-  TextField,
-  View,
-} from 'react-native-ui-lib';
-import { useColors } from 'context/ColorContext';
-import IconSVG from 'components/Shared/icons/IconSVG';
-import MacrosBarChart from 'components/Screens/Create/MacrosBarChart';
-import MacroInputField from 'components/Screens/Create/MacroInputField';
+import { Button, Colors, KeyboardAwareScrollView, View } from 'react-native-ui-lib';
+import { Portal } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { getAllUnits } from 'database/queries/unitsQueries';
 import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+
+import { useColors } from 'context/ColorContext';
+
+// components
+import Dialogs from 'components/Shared/Dialogs';
+import IconSVG from 'components/Shared/icons/IconSVG';
 import UnitPicker from 'components/Shared/UnitPicker';
+import MacrosBarChart from 'components/Screens/Create/MacrosBarChart';
+import MacroInputField from 'components/Screens/Create/MacroInputField';
+
 import { Unit } from 'database/types';
-import calculateCalories from 'utils/calculateCalories';
 import { getAllFoodNames } from 'database/queries/foodsQueries';
+
+import calculateCalories from 'utils/calculateCalories';
 import { validateFoodInputs } from 'utils/validation/validateFood';
-import { ErrorType, Validation, ValidationStatus } from 'utils/validation/types';
+import { Validation, ValidationStatus } from 'utils/validation/types';
 
 // (!!!) This screen produces a warning due to nesting UnitPicker inside a KeyboardAwareScrollView.
 // Nevertheless, this is strictly necessary to avoid the keyboard from covering the bottom-most input fields.
@@ -44,6 +44,8 @@ export default function Create() {
 
   // Stateful nutritional data
   const [name, setName] = useState('');
+  // (!) Attention: whenever kcals would be used, first check whether it has any input.
+  // If it doesn't use expectedKcals instead for a smoother user experience.
   const [kcals, setKcals] = useState('');
   const [measure, setMeasure] = useState('');
   const [fat, setFat] = useState('');
@@ -62,131 +64,152 @@ export default function Create() {
   const [selectedUnit, setSelectedUnit] = useState<Unit>({ id: 1, symbol: 'g' });
 
   // Initializes the validation status
+  const [validationAttempted, setValidationAttempted] = useState(false);
   const [validation, setValidation] = useState<Validation>({
     status: ValidationStatus.Valid,
     errors: [],
   });
 
   // Resets the validation status
-  const resetValidation = () =>
+  const resetValidation = () => {
+    setValidationAttempted(false);
     setValidation({
       status: ValidationStatus.Valid,
       errors: [],
     });
+  };
 
   // Resets the validation status every time a field changes
   useEffect(resetValidation, [name, kcals, measure, fat, protein, carbs]);
+
+  // Controls the showing of warnings and errors
+  const [showDialogs, setShowDialogs] = useState(false);
+  useEffect(() => {
+    setShowDialogs(validation.status !== ValidationStatus.Valid);
+  }, [validation]);
 
   if (!unitsFetched) return <></>;
 
   return (
     <>
-      {/* Show the warnings here once the Dialogs component is done */}
-      {/* <Dialog /> */}
-      <KeyboardAwareScrollView
-        behavior="padding"
-        nestedScrollEnabled
-        extraScrollHeight={160}
-        contentContainerStyle={styles.container}>
-        <View style={styles.nameField}>
-          <TextInput
-            placeholder="New Food"
-            onChangeText={(text) => setName(text)}
-            placeholderTextColor={Colors.violet40}
-            style={styles.nameInput}
-          />
-        </View>
-        {/* Graph */}
-        <MacrosBarChart fat={Number(fat)} carbs={Number(carbs)} protein={Number(protein)} />
-        {/* Macros & Unit */}
-        <View row gap-20>
-          {/* Macros */}
-          <View flex gap-20>
-            {/* Fat */}
-            <MacroInputField
-              text={fat}
-              onChangeText={(text) => setFat(text)}
-              color={colors.get('fat')}
-              unitSymbol={'g'}
-              iconName={'bacon-solid'}
-              maxLength={7}
-            />
-            {/* Carbs */}
-            <MacroInputField
-              text={carbs}
-              onChangeText={(text) => setCarbs(text)}
-              color={colors.get('carbohydrates')}
-              unitSymbol={'g'}
-              iconName={'wheat-solid'}
-              maxLength={7}
-            />
-            {/* Protein */}
-            <MacroInputField
-              text={protein}
-              onChangeText={(text) => setProtein(text)}
-              color={colors.get('protein')}
-              unitSymbol={'g'}
-              iconName={'meat-solid'}
-              maxLength={7}
+      {/* Using a portal is needed because the nested scrollViews mess up the Dialog component  */}
+      <Portal.Host>
+        <Portal>
+          {/* Show the warnings here component is done */}
+          <Dialogs show={showDialogs} setShow={setShowDialogs} errors={validation.errors} />
+        </Portal>
+        <KeyboardAwareScrollView
+          behavior="padding"
+          nestedScrollEnabled
+          extraScrollHeight={160}
+          contentContainerStyle={styles.container}>
+          <View style={styles.nameField}>
+            <TextInput
+              placeholder="New Food"
+              onChangeText={(text) => setName(text)}
+              placeholderTextColor={Colors.violet40}
+              style={styles.nameInput}
             />
           </View>
-          {/* Unit */}
-          <View style={styles.unitPickerFlex}>
-            <View style={styles.unitIconBox}>
-              <IconSVG width={24} name={'ruler-solid'} color={Colors.white} />
-              <IconSVG style={styles.unitCaret} color={Colors.violet30} name="caret-down-solid" />
+          {/* Graph */}
+          <MacrosBarChart fat={Number(fat)} carbs={Number(carbs)} protein={Number(protein)} />
+          {/* Macros & Unit */}
+          <View row gap-20>
+            {/* Macros */}
+            <View flex gap-20>
+              {/* Fat */}
+              <MacroInputField
+                text={fat}
+                onChangeText={(text) => setFat(text)}
+                color={colors.get('fat')}
+                unitSymbol={'g'}
+                iconName={'bacon-solid'}
+                maxLength={7}
+              />
+              {/* Carbs */}
+              <MacroInputField
+                text={carbs}
+                onChangeText={(text) => setCarbs(text)}
+                color={colors.get('carbohydrates')}
+                unitSymbol={'g'}
+                iconName={'wheat-solid'}
+                maxLength={7}
+              />
+              {/* Protein */}
+              <MacroInputField
+                text={protein}
+                onChangeText={(text) => setProtein(text)}
+                color={colors.get('protein')}
+                unitSymbol={'g'}
+                iconName={'meat-solid'}
+                maxLength={7}
+              />
             </View>
-            <UnitPicker units={units} onChange={(unit) => setSelectedUnit(unit)} />
+            {/* Unit */}
+            <View style={styles.unitPickerFlex}>
+              <View style={styles.unitIconBox}>
+                <IconSVG width={24} name={'ruler-solid'} color={Colors.white} />
+                <IconSVG style={styles.unitCaret} color={Colors.violet30} name="caret-down-solid" />
+              </View>
+              <UnitPicker units={units} onChange={(unit) => setSelectedUnit(unit)} />
+            </View>
           </View>
-        </View>
-        {/* Quantity & Calories */}
-        <View spread gap-20>
-          {/* Calories */}
-          <MacroInputField
-            text={kcals}
-            onChangeText={(text) => setKcals(text)}
-            unitSymbol={'kcal'}
-            unitIndicatorWidth={60}
-            iconName={'ball-pile-solid'}
-            maxLength={9}
-            placeholder={expectedKcals}
-          />
-          {/* Measure */}
-          <MacroInputField
-            text={measure}
-            onChangeText={(text) => setMeasure(text)}
-            unitSymbol={selectedUnit.symbol}
-            unitIndicatorWidth={60}
-            iconName={'scale-unbalanced-solid'}
-            maxLength={7}
-          />
-        </View>
-        {/* Submit Button */}
-        <Button
-          style={{ borderRadius: 12 }}
-          disabled={validation.status === ValidationStatus.Error}
-          label={validation.status === ValidationStatus.Warning ? 'Proceed anyway' : 'Create food'}
-          onPress={() => {
-            const tempValidationStatus: Validation = validateFoodInputs({
-              name,
-              existingNames: names,
-              kcals,
-              expectedKcals,
-              measure,
-            });
-
-            if (tempValidationStatus.status === ValidationStatus.Valid) {
-              // create food
-              console.log('food created!');
-            } else {
-              // show problems
-              setValidation(tempValidationStatus);
-              console.log(tempValidationStatus);
+          {/* Quantity & Calories */}
+          <View spread gap-20>
+            {/* Calories */}
+            <MacroInputField
+              text={kcals}
+              onChangeText={(text) => setKcals(text)}
+              unitSymbol={'kcal'}
+              unitIndicatorWidth={60}
+              iconName={'ball-pile-solid'}
+              maxLength={9}
+              placeholder={expectedKcals}
+            />
+            {/* Measure */}
+            <MacroInputField
+              text={measure}
+              onChangeText={(text) => setMeasure(text)}
+              unitSymbol={selectedUnit.symbol}
+              unitIndicatorWidth={60}
+              iconName={'scale-unbalanced-solid'}
+              maxLength={7}
+            />
+          </View>
+          {/* Submit Button */}
+          <Button
+            style={{ borderRadius: 12 }}
+            disabled={validation.status === ValidationStatus.Error}
+            label={
+              validation.status === ValidationStatus.Warning ? 'Proceed anyway' : 'Create food'
             }
-          }}
-        />
-        {/* </View> */}
-      </KeyboardAwareScrollView>
+            onPress={() => {
+              // Validates the current data
+              const tempValidationStatus: Validation = validateFoodInputs({
+                name,
+                existingNames: names,
+                kcals: kcals === '' ? expectedKcals : kcals,
+                expectedKcals,
+                measure,
+              });
+              // If it is valid OR if it has only warnings but the user still wishes to proceed...
+              if (
+                tempValidationStatus.status === ValidationStatus.Valid ||
+                (tempValidationStatus.status === ValidationStatus.Warning && validationAttempted)
+              ) {
+                // Creates the food and the nutritable and redirects to the foods list
+                console.log('food created!');
+              } else {
+                // Makes this validation result available to the rest of the program.
+                setValidation(tempValidationStatus);
+                // And signals the validation as attempted (this way we know if the user has already been warned)
+                setValidationAttempted(true);
+              }
+            }}
+          />
+          {/* </View> */}
+        </KeyboardAwareScrollView>
+      </Portal.Host>
     </>
   );
 }
