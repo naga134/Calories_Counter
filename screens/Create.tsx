@@ -130,7 +130,7 @@ export default function Create() {
               <MacroInputField
                 text={carbs}
                 onChangeText={(text) => setCarbs(text)}
-                color={colors.get('carbohydrates')}
+                color={colors.get('carbs')}
                 unitSymbol={'g'}
                 iconName={'wheat-solid'}
                 maxLength={7}
@@ -215,6 +215,14 @@ export default function Create() {
 }
 
 const styles = StyleSheet.create({
+  unitPickerFlex: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 160,
+    width: 128,
+    gap: 8,
+  },
   unitIconBox: {
     position: 'relative',
     justifyContent: 'center',
@@ -245,13 +253,5 @@ const styles = StyleSheet.create({
   container: {
     gap: 20,
     padding: 20,
-  },
-  unitPickerFlex: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 160,
-    width: 128,
-    gap: 8,
   },
 });

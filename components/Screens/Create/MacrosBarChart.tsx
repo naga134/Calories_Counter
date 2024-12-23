@@ -22,7 +22,7 @@ export default function MacrosBarChart({ fat, carbs, protein }: MacrosBarChartPr
 
   const macros: macro[] = [
     { color: colors.get('fat'), icon: 'bacon-solid', amount: fat },
-    { color: colors.get('carbohydrates'), icon: 'wheat-solid', amount: carbs },
+    { color: colors.get('carbs'), icon: 'wheat-solid', amount: carbs },
     { color: colors.get('protein'), icon: 'meat-solid', amount: protein },
   ];
 

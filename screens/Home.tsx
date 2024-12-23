@@ -80,7 +80,7 @@ export default function Home() {
   const macronutrients: { name: MacroName; grams: number }[] = [
     { name: 'fat', grams: fat },
     { name: 'protein', grams: protein },
-    { name: 'carbohydrates', grams: carbohydrates },
+    { name: 'carbs', grams: carbohydrates },
   ];
 
   // Adding insignificant data to ensure the drawing of the graph even for empty macros
@@ -97,7 +97,7 @@ export default function Home() {
       // onPress: () => setFat(fat + 10),
     },
     {
-      color: colors.get('carbohydrates'),
+      color: colors.get('carbs'),
       iconName: 'wheat-solid',
       amount: carbohydrates,
       unit: 'g',
@@ -111,7 +111,7 @@ export default function Home() {
       // onPress: () => setProtein(protein + 10),
     },
     {
-      color: colors.get('calories'),
+      color: colors.get('kcals'),
       iconName: 'ball-pile-solid',
       amount: fat * 8 + carbohydrates * 4 + protein * 4,
       unit: 'g',
@@ -167,9 +167,9 @@ export default function Home() {
           {/* Chart's legend */}
           <View style={{ flex: 1, justifyContent: 'flex-end' }}>
             <MacroLegendItem macro="Fat" color={colors.get('fat')} />
-            <MacroLegendItem macro="Carbohydrates" color={colors.get('carbohydrates')} />
+            <MacroLegendItem macro="Carbohydrates" color={colors.get('carbs')} />
             <MacroLegendItem macro="Protein" color={colors.get('protein')} />
-            <MacroLegendItem macro="Calories" color={colors.get('calories')} />
+            <MacroLegendItem macro="Calories" color={colors.get('kcals')} />
           </View>
         </View>
         {/* Meals' List */}
