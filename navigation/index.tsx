@@ -11,6 +11,7 @@ import Edit from 'screens/Edit';
 import Home from 'screens/Home';
 import List from 'screens/List';
 import Read from 'screens/Read';
+import Update from 'screens/Update';
 
 export type RootStackParamList = {
   // Displays entries, daily meals and daily nutritional overview. Allows:
@@ -61,8 +62,8 @@ const RootStack = () => {
             animation: 'slide_from_right',
           }}
         />
-        {/* <Stack.Screen
-          name="CreateNutritable"
+        <Stack.Screen
+          name="Add"
           component={Add}
           // TODO: - pass food and existing nutritables as parameters
           // - set title dynamically: "Add nutritional table to [foodname]
@@ -70,10 +71,10 @@ const RootStack = () => {
             title: 'Add nutritional table',
             animation: 'slide_from_right',
           }}
-        /> */}
+        />
         <Stack.Screen
           name="Update"
-          component={Edit}
+          component={Update}
           // TODO: - pass food and existing nutritables as parameters
           // - set title dynamically: "Edit [foodname]'s nutritional table
           options={{

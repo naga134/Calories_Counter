@@ -1,32 +1,24 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Dimensions, LayoutChangeEvent, StyleSheet } from 'react-native';
-import {
-  Colors,
-  Icon,
-  KeyboardAwareScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native-ui-lib';
+import { Dimensions, LayoutChangeEvent, Pressable, StyleSheet } from 'react-native';
+import { Colors, KeyboardAwareScrollView, Text, TouchableOpacity, View } from 'react-native-ui-lib';
 import { Portal } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { getAllUnits } from 'database/queries/unitsQueries';
 import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
-
 import { useColors } from 'context/ColorContext';
-import { StaticScreenProps } from '@react-navigation/native';
+import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import { Food, Meal, Nutritable, Unit } from 'database/types';
 import { getNutritablesByFood } from 'database/queries/nutritablesQueries';
 import IconSVG from 'components/Shared/icons/IconSVG';
 import ToggleView, { ViewMode } from 'components/Screens/Read/ToggleView';
-import MacrosBarChart from 'components/Screens/Create/MacrosBarChart';
 import MacroInputField from 'components/Screens/Create/MacroInputField';
 import SegmentedMacrosBarChart from 'components/Screens/Read/SegmentedMacrosBarChart';
 import HorizontalUnitPicker from 'components/Screens/Read/HorizontalUnitPicker';
-import { FlatList } from 'react-native-gesture-handler';
 import MacrosTransition from 'components/Screens/Read/MacrosTransition';
 import KcalsTransition from 'components/Screens/Read/KcalsTransition';
 import MacrosAccordion from 'components/Screens/Read/MacrosAccordion';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from 'navigation';
 
 type Props = StaticScreenProps<{
   food: Food;
@@ -48,7 +40,7 @@ export default function Read({ route }: Props) {
 
   const colors = useColors();
   const screenWidth = Dimensions.get('window').width;
-
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const database: SQLiteDatabase = useSQLiteContext();
 
   // FETCHING the food's nutritables
@@ -79,7 +71,7 @@ export default function Read({ route }: Props) {
   }, [nutritables, allUnits]);
 
   const [measurement, setMeasurement] = useState<string>('');
-  const [selectedNutritable, setSelectedNutritable] = useState<Nutritable>();
+  const [selectedNutritable, setSelectedNutritable] = useState<Nutritable>(nutritables[0]);
 
   // THIS TOGGLES THE VIEW MODE
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Simple);
@@ -88,18 +80,13 @@ export default function Read({ route }: Props) {
   // amount of each macro that was present in the meal before this entry's addition
   // Day: same as the meal, but for the day.
 
+  // ANIMATION LOGIC BASED ON VIEW MODE
+
   const [accordionHeight, setAccordionHeight] = useState(0);
-  const [kcalsHeight, setKcalsHeight] = useState(0);
 
   const onAccordionLayout = useCallback((e: LayoutChangeEvent) => {
     setAccordionHeight(e.nativeEvent.layout.height);
   }, []);
-
-  const onKcalsLayout = useCallback((e: LayoutChangeEvent) => {
-    setKcalsHeight(e.nativeEvent.layout.height);
-  }, []);
-
-  const leftoverSpace = Math.max(accordionHeight - kcalsHeight + 0.1, 0);
 
   // Return a blank screen if the relevant data has not as of yet been properly fetched.
   if (
@@ -149,13 +136,14 @@ export default function Read({ route }: Props) {
             {/* Macros Box */}
             <View flex onLayout={onAccordionLayout}>
               <View style={{ overflow: 'hidden', borderRadius: 20 }}>
+                {/* This shows the total calories or its change */}
                 <KcalsTransition
-                  onLayout={onKcalsLayout}
                   current={0}
                   after={0}
                   expanded={viewMode !== ViewMode.Simple}
                   expandedHeight={accordionHeight / 4}
                 />
+                {/* This shows the change in macros */}
                 <MacrosAccordion
                   expanded={viewMode !== ViewMode.Simple}
                   leftoverSpace={(accordionHeight / 4) * 3}>
@@ -166,15 +154,9 @@ export default function Read({ route }: Props) {
               </View>
             </View>
             {/* Unit Picker Flex Box */}
-            <View
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                gap: 12,
-                position: 'relative',
-              }}>
+            <View style={styles.unitPickerFlex}>
               {/* Unit Picker */}
-              <HorizontalUnitPicker data={allUnits} wheelWidth={(screenWidth - 52) / 2} />
+              <HorizontalUnitPicker data={usedUnits} wheelWidth={(screenWidth - 52) / 2} />
               {/* Caret Indicator */}
               <IconSVG
                 style={{ position: 'absolute', top: 68, transform: [{ rotate: '180deg' }] }}
@@ -182,13 +164,7 @@ export default function Read({ route }: Props) {
                 name="caret-down-solid"
               />
               {/* Ruler Icon Box */}
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  backgroundColor: Colors.violet30,
-                  borderRadius: 12,
-                }}>
+              <View style={styles.rulerIconBox}>
                 {/* Ruler Icon */}
                 <IconSVG
                   width={24}
@@ -203,32 +179,35 @@ export default function Read({ route }: Props) {
           {/* Buttons section */}
           <View style={styles.buttonsFlex}>
             {/* button: DELETE nutritable */}
-            <TouchableOpacity style={styles.button}>
+            <Pressable style={styles.button}>
               <IconSVG
                 name="solid-square-list-circle-xmark"
                 color={'white'}
                 width={28}
                 style={{ marginLeft: 4 }}
+                onPress={() => console.log('DELETE')}
               />
-            </TouchableOpacity>
+            </Pressable>
             {/* button: EDIT nutritable */}
-            <TouchableOpacity style={styles.button}>
+            <Pressable style={styles.button}>
               <IconSVG
                 name="solid-square-list-pen"
                 color={'white'}
                 width={28}
                 style={{ marginLeft: 4 }}
+                onPress={() => navigation.navigate('Update')}
               />
-            </TouchableOpacity>
+            </Pressable>
             {/* button: ADD nutritable */}
-            <TouchableOpacity style={styles.button}>
+            <Pressable style={styles.button}>
               <IconSVG
                 name="solid-square-list-circle-plus"
                 color={'white'}
                 width={28}
                 style={{ marginLeft: 4 }}
+                onPress={() => navigation.navigate('Add')}
               />
-            </TouchableOpacity>
+            </Pressable>
             {/* button: create ENTRY */}
             <TouchableOpacity style={styles.button}>
               <IconSVG name="utensils-solid" color={'white'} width={24} />
@@ -283,5 +262,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: 8,
+  },
+  unitPickerFlex: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 12,
+    position: 'relative',
+  },
+  rulerIconBox: {
+    width: 40,
+    height: 40,
+    backgroundColor: Colors.violet30,
+    borderRadius: 12,
   },
 });
