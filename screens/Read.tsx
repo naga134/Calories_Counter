@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { Dimensions, LayoutChangeEvent, Pressable, StyleSheet } from 'react-native';
 import { Colors, KeyboardAwareScrollView, Text, TouchableOpacity, View } from 'react-native-ui-lib';
 import { Portal } from 'react-native-paper';
@@ -19,6 +19,7 @@ import KcalsTransition from 'components/Screens/Read/KcalsTransition';
 import MacrosAccordion from 'components/Screens/Read/MacrosAccordion';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'navigation';
+import proportion from 'utils/proportion';
 
 type Props = StaticScreenProps<{
   food: Food;
@@ -68,10 +69,12 @@ export default function Read({ route }: Props) {
       setUnusedUnits(allUnits.filter((unit) => !tempUsedUnits?.includes(unit)));
       setUsedUnits(tempUsedUnits);
     }
-  }, [nutritables, allUnits]);
+  }, [nutritables, allUnits, nutritablesFetched, unitsFetched]);
 
   const [measurement, setMeasurement] = useState<string>('');
-  const [selectedNutritable, setSelectedNutritable] = useState<Nutritable>(nutritables[0]);
+  const [selectedNutritable, setSelectedNutritable] = useState<Nutritable>();
+
+  useEffect(() => setSelectedNutritable(nutritables[0]), [nutritablesFetched, nutritables]);
 
   // THIS TOGGLES THE VIEW MODE
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Simple);
@@ -87,6 +90,42 @@ export default function Read({ route }: Props) {
   const onAccordionLayout = useCallback((e: LayoutChangeEvent) => {
     setAccordionHeight(e.nativeEvent.layout.height);
   }, []);
+
+  // Consolidated Macros State
+  const [macros, setMacros] = useState({
+    kcals: 0,
+    fat: 0,
+    carbs: 0,
+    protein: 0,
+  });
+
+  // Calculate Macros using useMemo
+  const calculatedMacros = useMemo(() => {
+    if (!selectedNutritable || !measurement) return {
+      kcals: 0,
+      fat: 0,
+      carbs: 0,
+      protein: 0,
+    };
+
+    const { kcals: tableKcals, fats: tableFats, carbs: tableCarbs, protein: tableProtein, baseMeasure } = selectedNutritable;
+    const entryAmount = Number(measurement);
+
+    return {
+      kcals: proportion(tableKcals, entryAmount, baseMeasure),
+      fat: proportion(tableFats, entryAmount, baseMeasure),
+      carbs: proportion(tableCarbs, entryAmount, baseMeasure),
+      protein: proportion(tableProtein, entryAmount, baseMeasure),
+    };
+  }, [measurement, selectedNutritable]);
+
+  // Update Macros State
+  useEffect(() => {
+    setMacros(calculatedMacros);
+  }, [calculatedMacros]);
+
+  console.log(selectedNutritable);
+  console.log(macros.kcals, macros.fat, macros.carbs, macros.protein);
 
   // Return a blank screen if the relevant data has not as of yet been properly fetched.
   if (
@@ -109,7 +148,6 @@ export default function Read({ route }: Props) {
           nestedScrollEnabled
           extraScrollHeight={160}
           contentContainerStyle={styles.container}
-          // style={styles.container}
         >
           {/* Food Name */}
           <View style={styles.nameBox}>
@@ -119,8 +157,11 @@ export default function Read({ route }: Props) {
           <ToggleView viewMode={viewMode} setViewMode={setViewMode} />
 
           {/* Bars Chart */}
-          {/* BAR CHARTS COME HERE */}
-          <SegmentedMacrosBarChart protein={0} fat={0} carbs={0} />
+          <SegmentedMacrosBarChart
+            protein={macros.protein}
+            fat={macros.fat}
+            carbs={macros.carbs}
+          />
 
           {/* Input Field: AMOUNT */}
           <MacroInputField
@@ -139,17 +180,18 @@ export default function Read({ route }: Props) {
                 {/* This shows the total calories or its change */}
                 <KcalsTransition
                   current={0}
-                  after={0}
+                  after={macros.kcals}
                   expanded={viewMode !== ViewMode.Simple}
                   expandedHeight={accordionHeight / 4}
                 />
                 {/* This shows the change in macros */}
                 <MacrosAccordion
                   expanded={viewMode !== ViewMode.Simple}
-                  leftoverSpace={(accordionHeight / 4) * 3}>
-                  <MacrosTransition current={0} after={0} macro={'fat'} />
-                  <MacrosTransition current={0} after={0} macro={'carbs'} />
-                  <MacrosTransition current={0} after={0} macro={'protein'} />
+                  leftoverSpace={(accordionHeight / 4) * 3}
+                >
+                  <MacrosTransition current={0} after={macros.fat} macro={'fat'} />
+                  <MacrosTransition current={0} after={macros.carbs} macro={'carbs'} />
+                  <MacrosTransition current={0} after={macros.protein} macro={'protein'} />
                 </MacrosAccordion>
               </View>
             </View>
@@ -179,37 +221,34 @@ export default function Read({ route }: Props) {
           {/* Buttons section */}
           <View style={styles.buttonsFlex}>
             {/* button: DELETE nutritable */}
-            <Pressable style={styles.button}>
+            <Pressable style={styles.button} onPress={() => console.log('DELETE')}>
               <IconSVG
                 name="solid-square-list-circle-xmark"
                 color={'white'}
                 width={28}
                 style={{ marginLeft: 4 }}
-                onPress={() => console.log('DELETE')}
               />
             </Pressable>
             {/* button: EDIT nutritable */}
-            <Pressable style={styles.button}>
+            <Pressable style={styles.button} onPress={() => navigation.navigate('Update')}>
               <IconSVG
                 name="solid-square-list-pen"
                 color={'white'}
                 width={28}
                 style={{ marginLeft: 4 }}
-                onPress={() => navigation.navigate('Update')}
               />
             </Pressable>
             {/* button: ADD nutritable */}
-            <Pressable style={styles.button}>
+            <Pressable style={styles.button} onPress={() => navigation.navigate('Add')}>
               <IconSVG
                 name="solid-square-list-circle-plus"
                 color={'white'}
                 width={28}
                 style={{ marginLeft: 4 }}
-                onPress={() => navigation.navigate('Add')}
               />
             </Pressable>
             {/* button: create ENTRY */}
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button} onPress={() => console.log('Create Entry')}>
               <IconSVG name="utensils-solid" color={'white'} width={24} />
             </TouchableOpacity>
           </View>
@@ -228,15 +267,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.violet30,
     height: 60,
     borderRadius: 20,
-    overflow: 'scroll',
+    justifyContent: 'center', // Center vertically
+    alignItems: 'center', // Center horizontally
   },
   name: {
-    flex: 1,
-    textAlign: 'center',
-    textAlignVertical: 'center',
     color: 'white',
     fontSize: 20,
-    paddingHorizontal: 20,
+    textAlign: 'center',
   },
   buttonsFlex: {
     flexDirection: 'row',
@@ -253,7 +290,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 48,
     width: 48,
-    borderRadius: '100%',
+    borderRadius: 24, // Ensure it's circular
     backgroundColor: Colors.violet30,
   },
   flex: {
@@ -274,5 +311,7 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: Colors.violet30,
     borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
