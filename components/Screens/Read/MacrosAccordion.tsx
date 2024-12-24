@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import { Colors } from 'react-native-ui-lib';
 
 interface MacrosAccordionProps extends PropsWithChildren {
   expanded: boolean;
@@ -22,6 +23,7 @@ export default function MacrosAccordion({
   children,
 }: MacrosAccordionProps) {
   const heightValue = useSharedValue(0);
+  const color = Colors.violet30;
 
   // Animate from 0 → leftoverSpace or leftoverSpace → 0
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function MacrosAccordion({
   const containerStyle = useAnimatedStyle<ViewStyle>(() => ({
     height: heightValue.value,
     overflow: 'hidden',
+    backgroundColor: color, // To fill any empty spaces between the items
   }));
 
   return <Animated.View style={containerStyle}>{children}</Animated.View>;

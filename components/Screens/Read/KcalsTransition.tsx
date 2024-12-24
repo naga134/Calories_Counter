@@ -41,36 +41,55 @@ export default function KcalsTransition({
   }, [expanded, expandedHeight, height]);
 
   // Animated style
-  const animatedStyle = useAnimatedStyle(() => ({
+  const animatedHeight = useAnimatedStyle(() => ({
     height: height.value,
   }));
 
   return (
     <Animated.View
       onLayout={onLayout}
-      style={[styles.flex, { backgroundColor: colors.get('kcals') }, animatedStyle]}>
-      <IconSVG color="white" name="ball-pile-solid" width={20} />
-      <Text white style={textStyle}>
-        {current} {!expanded && 'kcal'}
-      </Text>
-      {expanded && (
-        <>
+      style={[{ backgroundColor: colors.get('kcals'), justifyContent: 'center' }, animatedHeight]}>
+      {expanded ? (
+        // expanded render
+        <View style={styles.expandedFlex}>
+          <IconSVG color="white" name="ball-pile-solid" width={20} />
+          <Text white style={textStyle}>
+            {current}
+          </Text>
           <IconSVG color={'white'} name="arrow-right-solid" width={16} />
           <Text white style={textStyle}>
             {after}
           </Text>
-        </>
+        </View>
+      ) : (
+        // simple render
+        <View style={styles.simpleFlex}>
+          <IconSVG color="white" name="ball-pile-solid" width={24} />
+          <View>
+            <Text white style={{ fontSize: 18 }}>
+              {after} kcal
+            </Text>
+          </View>
+        </View>
       )}
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: {
+  simpleFlex: {
+    width: '100%',
+    flexDirection: 'row',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  expandedFlex: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: 8,
-    overflow: 'hidden', // Ensure content doesn't overflow during animation
   },
 });

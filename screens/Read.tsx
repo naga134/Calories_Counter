@@ -99,7 +99,7 @@ export default function Read({ route }: Props) {
     setKcalsHeight(e.nativeEvent.layout.height);
   }, []);
 
-  const leftoverSpace = Math.max(accordionHeight - kcalsHeight, 0);
+  const leftoverSpace = Math.max(accordionHeight - kcalsHeight + 0.1, 0);
 
   // Return a blank screen if the relevant data has not as of yet been properly fetched.
   if (
