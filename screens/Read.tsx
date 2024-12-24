@@ -1,6 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Dimensions, StyleSheet } from 'react-native';
-import { Colors, KeyboardAwareScrollView, Text, TouchableOpacity, View } from 'react-native-ui-lib';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Dimensions, LayoutChangeEvent, StyleSheet } from 'react-native';
+import {
+  Colors,
+  Icon,
+  KeyboardAwareScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native-ui-lib';
 import { Portal } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { getAllUnits } from 'database/queries/unitsQueries';
@@ -11,13 +18,15 @@ import { StaticScreenProps } from '@react-navigation/native';
 import { Food, Meal, Nutritable, Unit } from 'database/types';
 import { getNutritablesByFood } from 'database/queries/nutritablesQueries';
 import IconSVG from 'components/Shared/icons/IconSVG';
-import ToggleView from 'components/Screens/Read/ToggleView';
-
-export enum ViewMode {
-  Simple,
-  Meal,
-  Day,
-}
+import ToggleView, { ViewMode } from 'components/Screens/Read/ToggleView';
+import MacrosBarChart from 'components/Screens/Create/MacrosBarChart';
+import MacroInputField from 'components/Screens/Create/MacroInputField';
+import SegmentedMacrosBarChart from 'components/Screens/Read/SegmentedMacrosBarChart';
+import HorizontalUnitPicker from 'components/Screens/Read/HorizontalUnitPicker';
+import { FlatList } from 'react-native-gesture-handler';
+import MacrosTransition from 'components/Screens/Read/MacrosTransition';
+import KcalsTransition from 'components/Screens/Read/KcalsTransition';
+import MacrosAccordion from 'components/Screens/Read/MacrosAccordion';
 
 type Props = StaticScreenProps<{
   food: Food;
@@ -42,7 +51,7 @@ export default function Read({ route }: Props) {
 
   const database: SQLiteDatabase = useSQLiteContext();
 
-  // Fetching the food's nutritables
+  // FETCHING the food's nutritables
   const { data: nutritables = [], isFetched: nutritablesFetched }: NutritableQueryReturn = useQuery(
     {
       queryKey: [`FoodNo.${food.id}Nutritables`],
@@ -51,7 +60,7 @@ export default function Read({ route }: Props) {
     }
   );
 
-  // Fetching all possible measurement units
+  // FETCHING all possible measurement units
   const { data: allUnits = [], isFetched: unitsFetched }: UnitsQueryReturn = useQuery({
     queryKey: ['allUnits'],
     queryFn: () => getAllUnits(database),
@@ -69,12 +78,28 @@ export default function Read({ route }: Props) {
     }
   }, [nutritables, allUnits]);
 
-  const [measurement, setMeasurement] = useState();
+  const [measurement, setMeasurement] = useState<string>('');
   const [selectedNutritable, setSelectedNutritable] = useState<Nutritable>();
 
+  // THIS TOGGLES THE VIEW MODE
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Simple);
+  // Simple: displays the bar chart as seen before
+  // Meal: displays a segmented bar chart in which grey-coloured segments represent the
+  // amount of each macro that was present in the meal before this entry's addition
+  // Day: same as the meal, but for the day.
 
-  console.log(viewMode);
+  const [accordionHeight, setAccordionHeight] = useState(0);
+  const [kcalsHeight, setKcalsHeight] = useState(0);
+
+  const onAccordionLayout = useCallback((e: LayoutChangeEvent) => {
+    setAccordionHeight(e.nativeEvent.layout.height);
+  }, []);
+
+  const onKcalsLayout = useCallback((e: LayoutChangeEvent) => {
+    setKcalsHeight(e.nativeEvent.layout.height);
+  }, []);
+
+  const leftoverSpace = Math.max(accordionHeight - kcalsHeight, 0);
 
   // Return a blank screen if the relevant data has not as of yet been properly fetched.
   if (
@@ -96,13 +121,85 @@ export default function Read({ route }: Props) {
           behavior="padding"
           nestedScrollEnabled
           extraScrollHeight={160}
-          contentContainerStyle={styles.container}>
+          contentContainerStyle={styles.container}
+          // style={styles.container}
+        >
           {/* Food Name */}
-          <View style={styles.nameField}>
-            <Text style={styles.nameInput}>{food.name}</Text>
+          <View style={styles.nameBox}>
+            <Text style={styles.name}>{food.name}</Text>
           </View>
           {/* View Toggle */}
           <ToggleView viewMode={viewMode} setViewMode={setViewMode} />
+
+          {/* Bars Chart */}
+          {/* BAR CHARTS COME HERE */}
+          <SegmentedMacrosBarChart protein={0} fat={0} carbs={0} />
+
+          {/* Input Field: AMOUNT */}
+          <MacroInputField
+            text={measurement}
+            onChangeText={(text) => setMeasurement(text)}
+            unitSymbol={nutritables[0].unit.symbol}
+            unitIndicatorWidth={60}
+            iconName={'scale-unbalanced-solid'}
+            maxLength={7}
+          />
+
+          <View flex row style={{ flex: 1, gap: 12 }}>
+            {/* Macros Box */}
+            <View flex onLayout={onAccordionLayout}>
+              <View style={{ overflow: 'hidden', borderRadius: 20 }}>
+                <KcalsTransition
+                  onLayout={onKcalsLayout}
+                  current={0}
+                  after={0}
+                  expanded={viewMode !== ViewMode.Simple}
+                  expandedHeight={accordionHeight / 4}
+                />
+                <MacrosAccordion
+                  expanded={viewMode !== ViewMode.Simple}
+                  leftoverSpace={(accordionHeight / 4) * 3}>
+                  <MacrosTransition current={0} after={0} macro={'fat'} />
+                  <MacrosTransition current={0} after={0} macro={'carbs'} />
+                  <MacrosTransition current={0} after={0} macro={'protein'} />
+                </MacrosAccordion>
+              </View>
+            </View>
+            {/* Unit Picker Flex Box */}
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                gap: 12,
+                position: 'relative',
+              }}>
+              {/* Unit Picker */}
+              <HorizontalUnitPicker data={allUnits} wheelWidth={(screenWidth - 52) / 2} />
+              {/* Caret Indicator */}
+              <IconSVG
+                style={{ position: 'absolute', top: 68, transform: [{ rotate: '180deg' }] }}
+                color={Colors.violet30}
+                name="caret-down-solid"
+              />
+              {/* Ruler Icon Box */}
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor: Colors.violet30,
+                  borderRadius: 12,
+                }}>
+                {/* Ruler Icon */}
+                <IconSVG
+                  width={24}
+                  name={'ruler-solid'}
+                  color={Colors.white}
+                  style={{ margin: 'auto' }}
+                />
+              </View>
+            </View>
+          </View>
+
           {/* Buttons section */}
           <View style={styles.buttonsFlex}>
             {/* button: DELETE nutritable */}
@@ -144,44 +241,23 @@ export default function Read({ route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  unitIconBox: {
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.violet30,
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+  container: {
+    gap: 20,
+    padding: 20,
   },
-  unitCaret: {
-    position: 'absolute',
-    transform: [{ rotate: '-90deg' }],
-    right: -20,
-    zIndex: 1,
-  },
-  nameField: {
+  nameBox: {
     backgroundColor: Colors.violet30,
     height: 60,
     borderRadius: 20,
     overflow: 'scroll',
   },
-  nameInput: {
+  name: {
     flex: 1,
     textAlign: 'center',
     textAlignVertical: 'center',
     color: 'white',
     fontSize: 20,
     paddingHorizontal: 20,
-  },
-  container: {
-    gap: 20,
-    padding: 20,
-  },
-  unitPickerFlex: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
   },
   buttonsFlex: {
     flexDirection: 'row',
@@ -200,5 +276,12 @@ const styles = StyleSheet.create({
     width: 48,
     borderRadius: '100%',
     backgroundColor: Colors.violet30,
+  },
+  flex: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 8,
   },
 });

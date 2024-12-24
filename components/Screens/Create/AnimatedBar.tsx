@@ -39,6 +39,9 @@ export default function AnimatedBar({ amount, maxAmount, color }: AnimatedBarPro
 
     return {
       height: 30,
+      // PROPORTION:
+      // Available Width is to Max Value as Animated Width is to Current Value.
+      // + 8 is simply so that the bar is visible from the start.
       width: (availableWidth * animatedWidth.value) / animatedMax.value + 8,
       backgroundColor: color,
       borderBottomEndRadius: 5,

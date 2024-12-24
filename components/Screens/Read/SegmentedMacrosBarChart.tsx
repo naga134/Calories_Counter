@@ -1,57 +1,96 @@
-import IconSVG from 'components/Shared/icons/IconSVG';
-import { useColors } from 'context/ColorContext';
-import React from 'react';
-import { StyleSheet } from 'react-native';
 import { Colors, Text, View } from 'react-native-ui-lib';
+import IconSVG from 'components/Shared/icons/IconSVG';
+import AnimatedBar from 'components/Screens/Create/AnimatedBar';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet } from 'react-native';
+import { useColors } from 'context/ColorContext';
 
-export default function SegmentedMacrosBarChart() {
+type macro = {
+  color: string;
+  amount: number;
+  icon: 'bacon-solid' | 'wheat-solid' | 'meat-solid';
+};
+
+type MacrosBarChartProps = {
+  fat: number;
+  carbs: number;
+  protein: number;
+};
+
+export default function SegmentedMacrosBarChart({ fat, carbs, protein }: MacrosBarChartProps) {
   const colors = useColors();
 
-  return (
-    <View>
-      <MacroMathView icon={'bacon-solid'} color={colors.get('fat')} />
-      <MacroMathView icon={'wheat-solid'} color={colors.get('carbs')} />
-      <MacroMathView icon={'meat-solid'} color={colors.get('protein')} />
-      <MacroMathView icon={'ball-pile-solid'} color={colors.get('kcals')} />
-    </View>
-  );
-}
+  const macros: macro[] = [
+    { color: colors.get('fat'), icon: 'bacon-solid', amount: fat },
+    { color: colors.get('carbs'), icon: 'wheat-solid', amount: carbs },
+    { color: colors.get('protein'), icon: 'meat-solid', amount: protein },
+  ];
 
-function MacroMathView({ color, icon }) {
+  const currentMax = Math.max(fat, carbs, protein) || 1;
+
   return (
-    <View style={[styles.flex, { backgroundColor: color }]}>
-      {/* macro icon */}
-      <IconSVG name={icon} width={28} color={'white'} style={{ marginRight: 8 }} />
-      {/* current amount */}
-      <Text style={styles.text}>0g</Text>
-      {/* plus sign */}
-      <IconSVG name="plus-solid" width={20} color={'white'} style={{ marginHorizontal: 8 }} />
-      {/* amount to be added */}
-      <Text style={styles.text}>0g</Text>
-      {/* equals sign */}
-      <IconSVG name="equals-solid" width={20} color={'white'} style={{ marginHorizontal: 8 }} />
-      {/* resulting amount */}
-      <Text style={styles.text}>0g</Text>
-    </View>
+    // A linear gradient made unto border
+    <LinearGradient
+      colors={[Colors.violet30, Colors.violet60]}
+      end={{ x: 0, y: 0.5 }}
+      style={{ borderRadius: 20, paddingHorizontal: 2, paddingBottom: 2 }}>
+      <View row>
+        {/* Each macronutrient overview */}
+        {macros.map((macro, index) => (
+          <View
+            key={index}
+            style={[
+              styles.macroBox,
+              {
+                backgroundColor: macro.color,
+                borderTopLeftRadius: index === 0 ? 19 : 0,
+                borderTopRightRadius: index === 2 ? 19 : 0,
+              },
+            ]}>
+            <IconSVG color={Colors.white} width={28} name={macro.icon} />
+            <Text style={styles.macroText}>{macro.amount}</Text>
+          </View>
+        ))}
+      </View>
+      {/* The chart itself*/}
+      <View style={styles.barChart}>
+        {macros.map((macro) => (
+          <View key={macro.icon} style={styles.barFlex}>
+            <AnimatedBar amount={macro.amount} maxAmount={currentMax} color={macro.color} />
+            <IconSVG width={28} name={macro.icon} color={macro.color} />
+          </View>
+        ))}
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  text: {
+  macroBox: {
     flex: 1,
-    color: 'white',
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    fontSize: 18,
-  },
-  flex: {
-    flex: 1,
+    gap: 8,
+    padding: 8,
     flexDirection: 'row',
-    height: 48,
-    backgroundColor: Colors.violet30,
     alignItems: 'center',
-    paddingHorizontal: 12,
-
-    // borderRadius: 8,
+    justifyContent: 'center',
+  },
+  macroText: {
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: 500,
+  },
+  barChart: {
+    overflow: 'hidden',
+    gap: 12,
+    backgroundColor: Colors.grey70,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderBottomStartRadius: 19,
+    borderBottomEndRadius: 19,
+  },
+  barFlex: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });

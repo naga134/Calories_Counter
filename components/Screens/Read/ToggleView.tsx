@@ -4,7 +4,12 @@ import { Pressable } from 'react-native-gesture-handler';
 import { Colors, Text, View } from 'react-native-ui-lib';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import IconSVG from 'components/Shared/icons/IconSVG';
-import { ViewMode } from 'screens/Read';
+
+export enum ViewMode {
+  Simple,
+  Meal,
+  Day,
+}
 
 // Define the structure for each mode
 const MODES: { mode: ViewMode; label: string }[] = [
