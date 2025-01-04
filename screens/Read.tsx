@@ -233,7 +233,11 @@ export default function Read({ route }: Props) {
               />
             </Pressable>
             {/* button: EDIT nutritable */}
-            <Pressable style={styles.button} onPress={() => navigation.navigate('Update')}>
+            <Pressable
+              style={styles.button}
+              onPress={() =>
+                navigation.navigate('Update', { food, nutritable: selectedNutritable })
+              }>
               <IconSVG
                 name="solid-square-list-pen"
                 color={'white'}
