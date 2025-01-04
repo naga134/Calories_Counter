@@ -14,20 +14,19 @@ import Read from 'screens/Read';
 import Update from 'screens/Update';
 
 export type RootStackParamList = {
-  // Displays entries, daily meals and daily nutritional overview. Allows:
+  Home: undefined; // Displays entries, daily meals and daily nutritional overview. Allows:
   // - Changing selected date;
   // - Adding an entry to a meal.
-  Home: undefined;
-  // Lists existing foods.
-  List: { meal: Meal };
-  // Creates food or nutritable.
-  Create: { food?: Food; units?: Unit[] }; // -> food & units ? create nutritable : create food
-  // Displays food and its nutritables, allows:
+
+  List: { meal: Meal }; // Lists existing foods.
+  Create: undefined; // Creates food.
+
+  Read: { meal: Meal; food: Food }; // Displays food and its nutritables, allows:
   // - Editing the food's name;
   // - Adding a specified amount of said food to a previously selected meal.
-  Read: { meal: Meal; food: Food };
-  // Allows editing of nutritional table.
-  Update: { nutritable: Nutritable; food: Food };
+
+  Update: { nutritable: Nutritable; food: Food }; // Allows editing of nutritional table.
+  Add: { food?: Food; units?: Unit[] }; // Creates nutritable
 };
 
 const Stack = createStackNavigator<RootStackParamList>();

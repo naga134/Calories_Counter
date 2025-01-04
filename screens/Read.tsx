@@ -60,21 +60,26 @@ export default function Read({ route }: Props) {
     initialData: [],
   });
 
-  // Determining which measurement units are currently in use and which are not.
-  const [usedUnits, setUsedUnits] = useState<Unit[]>();
-  const [unusedUnits, setUnusedUnits] = useState<Unit[]>();
-  useEffect(() => {
-    if (nutritablesFetched && unitsFetched) {
-      const tempUsedUnits = nutritables.map((nutritable) => nutritable.unit);
-      setUnusedUnits(allUnits.filter((unit) => !tempUsedUnits?.includes(unit)));
-      setUsedUnits(tempUsedUnits);
+  // Keeping track of USED and UNUSED measurement UNITS
+  const { usedUnits, unusedUnits } = useMemo(() => {
+    if (!nutritablesFetched || !unitsFetched) {
+      return { usedUnits: [], unusedUnits: [] };
     }
+    // Creates a Set of used unit symbols for efficient lookup
+    const usedUnitSymbols = new Set(nutritables.map((nutritable) => nutritable.unit.symbol));
+    // Filters allUnits to get the usedUnits and the unusedUnits
+    const usedUnits = allUnits.filter((unit) => usedUnitSymbols.has(unit.symbol));
+    const unusedUnits = allUnits.filter((unit) => !usedUnitSymbols.has(unit.symbol));
+    return { usedUnits, unusedUnits };
   }, [nutritables, allUnits, nutritablesFetched, unitsFetched]);
 
   const [measurement, setMeasurement] = useState<string>('');
   const [selectedNutritable, setSelectedNutritable] = useState<Nutritable>();
 
   useEffect(() => setSelectedNutritable(nutritables[0]), [nutritablesFetched, nutritables]);
+
+  // console.log('UNUSED');
+  // useEffect(() => console.log(unusedUnits), [unusedUnits]);
 
   // THIS TOGGLES THE VIEW MODE
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Simple);
@@ -101,14 +106,21 @@ export default function Read({ route }: Props) {
 
   // Calculate Macros using useMemo
   const calculatedMacros = useMemo(() => {
-    if (!selectedNutritable || !measurement) return {
-      kcals: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
-    };
+    if (!selectedNutritable || !measurement)
+      return {
+        kcals: 0,
+        fat: 0,
+        carbs: 0,
+        protein: 0,
+      };
 
-    const { kcals: tableKcals, fats: tableFats, carbs: tableCarbs, protein: tableProtein, baseMeasure } = selectedNutritable;
+    const {
+      kcals: tableKcals,
+      fats: tableFats,
+      carbs: tableCarbs,
+      protein: tableProtein,
+      baseMeasure,
+    } = selectedNutritable;
     const entryAmount = Number(measurement);
 
     return {
@@ -123,9 +135,6 @@ export default function Read({ route }: Props) {
   useEffect(() => {
     setMacros(calculatedMacros);
   }, [calculatedMacros]);
-
-  console.log(selectedNutritable);
-  console.log(macros.kcals, macros.fat, macros.carbs, macros.protein);
 
   // Return a blank screen if the relevant data has not as of yet been properly fetched.
   if (
@@ -147,8 +156,7 @@ export default function Read({ route }: Props) {
           behavior="padding"
           nestedScrollEnabled
           extraScrollHeight={160}
-          contentContainerStyle={styles.container}
-        >
+          contentContainerStyle={styles.container}>
           {/* Food Name */}
           <View style={styles.nameBox}>
             <Text style={styles.name}>{food.name}</Text>
@@ -157,11 +165,7 @@ export default function Read({ route }: Props) {
           <ToggleView viewMode={viewMode} setViewMode={setViewMode} />
 
           {/* Bars Chart */}
-          <SegmentedMacrosBarChart
-            protein={macros.protein}
-            fat={macros.fat}
-            carbs={macros.carbs}
-          />
+          <SegmentedMacrosBarChart protein={macros.protein} fat={macros.fat} carbs={macros.carbs} />
 
           {/* Input Field: AMOUNT */}
           <MacroInputField
@@ -187,8 +191,7 @@ export default function Read({ route }: Props) {
                 {/* This shows the change in macros */}
                 <MacrosAccordion
                   expanded={viewMode !== ViewMode.Simple}
-                  leftoverSpace={(accordionHeight / 4) * 3}
-                >
+                  leftoverSpace={(accordionHeight / 4) * 3}>
                   <MacrosTransition current={0} after={macros.fat} macro={'fat'} />
                   <MacrosTransition current={0} after={macros.carbs} macro={'carbs'} />
                   <MacrosTransition current={0} after={macros.protein} macro={'protein'} />
@@ -239,7 +242,10 @@ export default function Read({ route }: Props) {
               />
             </Pressable>
             {/* button: ADD nutritable */}
-            <Pressable style={styles.button} onPress={() => navigation.navigate('Add')}>
+            <Pressable
+              style={styles.button}
+              disabled={unusedUnits.length === 0}
+              onPress={() => navigation.navigate('Add', { food, units: unusedUnits })}>
               <IconSVG
                 name="solid-square-list-circle-plus"
                 color={'white'}
