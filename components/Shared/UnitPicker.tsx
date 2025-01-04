@@ -25,6 +25,7 @@ export default function UnitPicker({ units, onChange, direction = 'vertical' }: 
       style={{
         paddingHorizontal: 0,
         borderRadius: 16,
+        flex: 1,
       }}
     />
   );
