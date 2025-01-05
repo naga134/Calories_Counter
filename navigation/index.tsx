@@ -76,9 +76,10 @@ const RootStack = () => {
           component={Update}
           // TODO: - pass food and existing nutritables as parameters
           // - set title dynamically: "Edit [foodname]'s nutritional table
-          options={{
+          options={({ route }) => ({
+            title: `Edit nutritional table`,
             animation: 'slide_from_right',
-          }}
+          })}
         />
       </Stack.Navigator>
       {/* Triggered from the navigation */}

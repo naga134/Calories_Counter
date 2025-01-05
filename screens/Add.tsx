@@ -21,7 +21,10 @@ import { getAllFoodNames } from 'database/queries/foodsQueries';
 import calculateCalories from 'utils/calculateCalories';
 import { validateFoodInputs } from 'utils/validation/validateFood';
 import { Validation, ValidationStatus } from 'utils/validation/types';
-import { StaticScreenProps } from '@react-navigation/native';
+import { StaticScreenProps, useNavigation } from '@react-navigation/native';
+import { createNutritable } from 'database/queries/nutritablesQueries';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from 'navigation';
 
 type Props = StaticScreenProps<{
   food: Food;
@@ -35,6 +38,7 @@ export default function Add({ route }: Props) {
 
   const colors = useColors();
   const database: SQLiteDatabase = useSQLiteContext();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   // Stateful nutritional data
   // (!) Attention: whenever kcals would be used, first check whether it has any input.
@@ -184,7 +188,16 @@ export default function Add({ route }: Props) {
                 (tempValidationStatus.status === ValidationStatus.Warning && validationAttempted)
               ) {
                 // Creates the nutritable and redirects to the foods list
-                console.log('nutritable created!');
+                createNutritable(database, {
+                  foodId: food.id,
+                  unitId: selectedUnit.id,
+                  baseMeasure: Number(measure),
+                  kcals: Number(kcals),
+                  protein: Number(protein),
+                  carbs: Number(carbs),
+                  fats: Number(fat),
+                });
+                navigation.pop();
               } else {
                 // Makes this validation result available to the rest of the program.
                 setValidation(tempValidationStatus);
