@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   TouchableOpacity,
@@ -20,12 +20,14 @@ interface HorizontalUnitsPickerProps {
   data: Unit[];
   wheelWidth: number; // The visible width of this picker
   wheelHeight?: number; // Let the parent specify a fixed height for the picker
+  onChangeUnit: (unit: Unit) => void;
 }
 
 export default function HorizontalUnitsPicker({
   data,
   wheelWidth,
   wheelHeight = 80, // fallback to 80 if none given
+  onChangeUnit,
 }: HorizontalUnitsPickerProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const flatListRef = useRef<FlatList<Unit>>(null);
@@ -48,6 +50,10 @@ export default function HorizontalUnitsPicker({
       animated: true,
     });
   };
+
+  useEffect(() => {
+    onChangeUnit(data[selectedIndex]);
+  }, [selectedIndex]);
 
   return (
     <View

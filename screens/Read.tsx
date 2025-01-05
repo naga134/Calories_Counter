@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { Dimensions, LayoutChangeEvent, Pressable, StyleSheet } from 'react-native';
 import { Colors, KeyboardAwareScrollView, Text, TouchableOpacity, View } from 'react-native-ui-lib';
 import { Portal } from 'react-native-paper';
-import { useQuery } from '@tanstack/react-query';
+import { QueryObserverResult, RefetchOptions, useQuery } from '@tanstack/react-query';
 import { getAllUnits } from 'database/queries/unitsQueries';
-import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { useColors } from 'context/ColorContext';
 import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import { Food, Meal, Nutritable, Unit } from 'database/types';
@@ -29,6 +29,7 @@ type Props = StaticScreenProps<{
 type NutritableQueryReturn = {
   data: Nutritable[];
   isFetched: boolean;
+  refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<Nutritable[], Error>>;
 };
 
 type UnitsQueryReturn = {
@@ -45,13 +46,20 @@ export default function Read({ route }: Props) {
   const database: SQLiteDatabase = useSQLiteContext();
 
   // FETCHING the food's nutritables
-  const { data: nutritables = [], isFetched: nutritablesFetched }: NutritableQueryReturn = useQuery(
-    {
-      queryKey: [`FoodNo.${food.id}Nutritables`],
-      queryFn: () => getNutritablesByFood(database, { foodId: food.id }),
-      initialData: [],
-    }
-  );
+  const {
+    data: nutritables = [],
+    isFetched: nutritablesFetched,
+    refetch: refetchNutritables,
+  } = useQuery({
+    queryKey: [`FoodNo.${food.id}Nutritables`],
+    queryFn: () => getNutritablesByFood(database, { foodId: food.id }),
+    initialData: [],
+  });
+
+  // REFETCHES the food's nutritables on database change
+  addDatabaseChangeListener((change) => {
+    if (change.tableName === 'nutritables') refetchNutritables();
+  });
 
   // FETCHING all possible measurement units
   const { data: allUnits = [], isFetched: unitsFetched }: UnitsQueryReturn = useQuery({
@@ -201,7 +209,15 @@ export default function Read({ route }: Props) {
             {/* Unit Picker Flex Box */}
             <View style={styles.unitPickerFlex}>
               {/* Unit Picker */}
-              <HorizontalUnitPicker data={usedUnits} wheelWidth={(screenWidth - 52) / 2} />
+              <HorizontalUnitPicker
+                data={usedUnits}
+                wheelWidth={(screenWidth - 52) / 2}
+                onChangeUnit={(selectedUnit) =>
+                  setSelectedNutritable(
+                    nutritables.find((nutritable) => nutritable.unit.symbol === selectedUnit.symbol)
+                  )
+                }
+              />
               {/* Caret Indicator */}
               <IconSVG
                 style={{ position: 'absolute', top: 68, transform: [{ rotate: '180deg' }] }}
