@@ -51,14 +51,14 @@ CREATE TABLE IF NOT EXISTS "entries" (
     FOREIGN KEY ("nutritablesId") REFERENCES "nutritables" ("id")
 );
 -- Inserts measurement units.
-INSERT INTO units (symbol)
-VALUES ('g'),
-    ('ml'),
-    ('lb'),
-    ('tsp'),
-    ('tbsp'),
-    ('cup'),
-    ('oz');
+INSERT INTO units (symbol, id)
+VALUES ('g', 1),
+    ('ml', 2),
+    ('lb', 3),
+    ('tsp', 4),
+    ('tbsp', 5),
+    ('cup', 6),
+    ('oz', 7);
 -- Inserts initial ("out-of-the-box") meals.
 INSERT INTO meals (name, isDeleted)
 VALUES ('breakfast', 0),

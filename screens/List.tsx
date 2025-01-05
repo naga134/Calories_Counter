@@ -3,7 +3,7 @@ import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'exp
 import { FlatList } from 'react-native-gesture-handler';
 import { useQuery } from '@tanstack/react-query';
 import FoodListItem from 'components/FoodsListItem';
-import { Colors, TextField, View } from 'react-native-ui-lib';
+import { Colors, Text, TextField, View } from 'react-native-ui-lib';
 import { RootStackParamList } from 'navigation/index';
 
 import Animated, {
@@ -16,12 +16,13 @@ import Animated, {
   cancelAnimation,
 } from 'react-native-reanimated';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AnimatedCircleButton from 'components/Screens/List/AnimatedCircleButton';
 import { Meal } from 'database/types';
+import IconSVG from 'components/Shared/icons/IconSVG';
 
 type Props = StaticScreenProps<{
   meal: Meal;
@@ -68,26 +69,42 @@ export default function List({ route }: Props) {
 
   return (
     <>
-      <FlatList
-        ref={scrollViewRef}
-        scrollEnabled={scrollEnabled}
-        contentContainerStyle={{
-          padding: 20,
-          gap: 12,
-          // Necessary to not cover the list items with the search bar
-          paddingBottom: 68,
-        }}
-        keyExtractor={(item, index) => (item.id ? item.id.toString() : index)}
-        data={searchResults}
-        renderItem={({ item: food, index: index }) => {
-          return (
-            // searchResults.some((result) => result.id === food.id) && (
-            <FoodListItem food={food} meal={meal} />
-            // )
-          );
-        }}
-      />
+      {foods.length === 0 ? (
+        <View center flex marginB-40>
+          <IconSVG name="face-sad-solid" color={Colors.grey50} width={56} />
+          <IconSVG
+            name="bowl-chopsticks-question-solid"
+            color={Colors.grey50}
+            width={68}
+            style={{ marginLeft: 12 }}
+          />
+          <Text style={{ fontSize: 20, color: Colors.grey50, fontWeight: 600, marginLeft: 12 }}>
+            Nothing to eat here...
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          ref={scrollViewRef}
+          scrollEnabled={scrollEnabled}
+          contentContainerStyle={{
+            padding: 20,
+            gap: 12,
+            // Necessary to not cover the list items with the search bar
+            paddingBottom: 68,
+          }}
+          keyExtractor={(item, index) => (item.id ? item.id.toString() : index)}
+          data={searchResults}
+          renderItem={({ item: food, index: index }) => {
+            return (
+              // searchResults.some((result) => result.id === food.id) && (
+              <FoodListItem food={food} meal={meal} />
+              // )
+            );
+          }}
+        />
+      )}
       <BottomBar
+        hideSearch={foods.length === 0}
         searchParams={searchParams}
         setSearchParams={setSearchParams}
         disabled={!scrollEnabled}
@@ -97,15 +114,15 @@ export default function List({ route }: Props) {
 }
 
 interface BottomBarProps {
+  hideSearch?: boolean;
   disabled?: boolean; // Optional boolean indicating if the bottom bar is disabled
   searchParams: string; // The current search string
   setSearchParams: React.Dispatch<React.SetStateAction<string>>; // State updater function for searchParams
 }
 
-function BottomBar({ disabled, searchParams, setSearchParams }: BottomBarProps) {
+function BottomBar({ hideSearch, disabled, searchParams, setSearchParams }: BottomBarProps) {
   // useNavigation<StackNavigationProp<RootStackParamList>>
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-
   const [expanded, setExpanded] = useState(false);
   const screenWidth = Dimensions.get('window').width;
 
@@ -186,33 +203,42 @@ function BottomBar({ disabled, searchParams, setSearchParams }: BottomBarProps) 
 
   return (
     <View style={{ position: 'relative' }}>
-      {/* Search Bar */}
-      <Animated.View style={[styles.bottomBar, bottomBarAnimatedStyle]}>
-        <TextField
-          textAlign={'center'}
-          textAlignVertical={'center'}
-          style={[styles.textField, { width: screenWidth - 104 }]}
-          placeholder={'Search for a food!'}
-          placeholderTextColor={Colors.white}
-          onChangeText={(text) => setSearchParams(text)}
-        />
-      </Animated.View>
-      {/* Search Button */}
-      <AnimatedCircleButton
-        disabled={disabled}
-        onPress={() => setExpanded(!expanded)}
-        buttonStyle={[styles.searchButton, searchButtonAnimatedStyle]}
-        iconProps={{
-          style: { margin: 'auto' },
-          name: 'magnifying-glass-solid',
-          width: 20,
-          color: Colors.white,
-        }}
-      />
+      {hideSearch ? (
+        <View style={styles.yetFlex}>
+          <Text style={styles.yetText}>...Yet!</Text>
+          <IconSVG name="face-wink-solid" color={Colors.grey50} width={40} />
+        </View>
+      ) : (
+        <>
+          {/* Search Bar */}
+          <Animated.View style={[styles.bottomBar, bottomBarAnimatedStyle]}>
+            <TextField
+              textAlign={'center'}
+              textAlignVertical={'center'}
+              style={[styles.textField, { width: screenWidth - 104 }]}
+              placeholder={'Search for a food!'}
+              placeholderTextColor={Colors.white}
+              onChangeText={(text) => setSearchParams(text)}
+            />
+          </Animated.View>
+          {/* Search Button */}
+          <AnimatedCircleButton
+            disabled={disabled}
+            onPress={() => setExpanded(!expanded)}
+            buttonStyle={[styles.searchButton, searchButtonAnimatedStyle]}
+            iconProps={{
+              style: { margin: 'auto' },
+              name: 'magnifying-glass-solid',
+              width: 20,
+              color: Colors.white,
+            }}
+          />
+        </>
+      )}
       {/* Add Food Button */}
       <AnimatedCircleButton
         disabled={disabled}
-        onPress={() => navigation.navigate('Create', {})}
+        onPress={() => navigation.navigate('Create')}
         buttonStyle={[styles.addFoodButton, addButtonAnimatedStyle]}
         iconProps={{
           style: { margin: 'auto' },
@@ -261,5 +287,20 @@ const styles = StyleSheet.create({
     width: 48,
     borderRadius: '100%',
     backgroundColor: Colors.violet30,
+  },
+  yetFlex: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    position: 'absolute',
+    bottom: 12,
+    gap: 8,
+    right: 64,
+  },
+  yetText: {
+    fontSize: 20,
+    color: Colors.grey50,
+    fontWeight: 600,
+    marginLeft: 12,
+    textAlignVertical: 'center',
   },
 });

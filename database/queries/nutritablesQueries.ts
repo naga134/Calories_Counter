@@ -84,6 +84,6 @@ export const updateNutritable = (database: SQLiteDatabase, params: {
 export const deleteNutritable = (database: SQLiteDatabase, params: {
     nutritableId: number
 }) => {
-    const query = `DELETE FROM nutritables WHERE id = $nutritablesId;`
+    const query = `DELETE FROM nutritables WHERE id = $nutritableId;`
     return database.runSync(query, toSQLiteParams(params))
 }

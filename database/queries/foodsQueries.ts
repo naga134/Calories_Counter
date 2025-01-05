@@ -29,10 +29,17 @@ export const createFood = (database: SQLiteDatabase, params: { foodName: string 
   return database.runSync(query, toSQLiteParams(params));
 };
 
+export const deleteFood = (database: SQLiteDatabase, params: { foodId: number }) => {
+  const query = `DELETE FROM foods WHERE id = $foodId;`
+  return database.runSync(query, toSQLiteParams(params));
+};
+
 export const updateFoodName = (database: SQLiteDatabase, params: { foodId: number, newFoodName: string }) => {
   const query = `UPDATE foods SET name = $newFoodName WHERE id = $foodId;`;
   return database.runSync(query, toSQLiteParams(params));
 }
+
+
 
 // import toSQLiteParameters from "../functions/toSQLiteParameters";
 

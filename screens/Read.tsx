@@ -8,7 +8,7 @@ import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'exp
 import { useColors } from 'context/ColorContext';
 import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import { Food, Meal, Nutritable, Unit } from 'database/types';
-import { getNutritablesByFood } from 'database/queries/nutritablesQueries';
+import { deleteNutritable, getNutritablesByFood } from 'database/queries/nutritablesQueries';
 import IconSVG from 'components/Shared/icons/IconSVG';
 import ToggleView, { ViewMode } from 'components/Screens/Read/ToggleView';
 import MacroInputField from 'components/Screens/Create/MacroInputField';
@@ -20,7 +20,7 @@ import MacrosAccordion from 'components/Screens/Read/MacrosAccordion';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'navigation';
 import proportion from 'utils/proportion';
-import { getFoodById } from 'database/queries/foodsQueries';
+import { deleteFood, getFoodById } from 'database/queries/foodsQueries';
 
 type Props = StaticScreenProps<{
   foodId: number;
@@ -254,7 +254,17 @@ export default function Read({ route }: Props) {
           {/* Buttons section */}
           <View style={styles.buttonsFlex}>
             {/* button: DELETE nutritable */}
-            <Pressable style={styles.button} onPress={() => console.log('DELETE')}>
+            <Pressable
+              style={styles.button}
+              onPress={() => {
+                if (nutritables.length !== 1) {
+                  deleteNutritable(database, { nutritableId: selectedNutritable.id });
+                } else {
+                  deleteNutritable(database, { nutritableId: selectedNutritable.id });
+                  deleteFood(database, { foodId });
+                  navigation.pop();
+                }
+              }}>
               <IconSVG
                 name="solid-square-list-circle-xmark"
                 color={'white'}
