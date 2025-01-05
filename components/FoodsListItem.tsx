@@ -19,7 +19,7 @@ export default function FoodListItem({ food, meal }: FoodListItemProps) {
     <TouchableOpacity
       style={[styles.listItem]}
       onPress={() => {
-        navigation.navigate('Read', { food, meal });
+        navigation.navigate('Read', { foodId: food.id, meal });
       }}>
       <Text style={{ fontSize: 18 }}>{food.name}</Text>
       <IconSVG name="arrow-right-solid" width={16} color={Colors.violet50} />

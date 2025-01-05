@@ -20,9 +20,10 @@ import MacrosAccordion from 'components/Screens/Read/MacrosAccordion';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'navigation';
 import proportion from 'utils/proportion';
+import { getFoodById } from 'database/queries/foodsQueries';
 
 type Props = StaticScreenProps<{
-  food: Food;
+  foodId: number;
   meal: Meal;
 }>;
 
@@ -38,12 +39,22 @@ type UnitsQueryReturn = {
 };
 
 export default function Read({ route }: Props) {
-  const { food, meal } = route.params;
+  const { foodId, meal } = route.params;
 
   const colors = useColors();
   const screenWidth = Dimensions.get('window').width;
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const database: SQLiteDatabase = useSQLiteContext();
+
+  const {
+    data: food,
+    isFetched: foodFetched,
+    refetch: refetchFood,
+  } = useQuery({
+    queryKey: [`FoodNo.${foodId}`],
+    queryFn: () => getFoodById(database, { foodId }),
+    initialData: null,
+  });
 
   // FETCHING the food's nutritables
   const {
@@ -51,14 +62,15 @@ export default function Read({ route }: Props) {
     isFetched: nutritablesFetched,
     refetch: refetchNutritables,
   } = useQuery({
-    queryKey: [`FoodNo.${food.id}Nutritables`],
-    queryFn: () => getNutritablesByFood(database, { foodId: food.id }),
+    queryKey: [`FoodNo.${foodId}Nutritables`],
+    queryFn: () => getNutritablesByFood(database, { foodId }),
     initialData: [],
   });
 
   // REFETCHES the food's nutritables on database change
   addDatabaseChangeListener((change) => {
     if (change.tableName === 'nutritables') refetchNutritables();
+    if (change.tableName === 'foods') refetchFood();
   });
 
   // FETCHING all possible measurement units
@@ -144,14 +156,16 @@ export default function Read({ route }: Props) {
     setMacros(calculatedMacros);
   }, [calculatedMacros]);
 
+  console.log(food);
+
   // Return a blank screen if the relevant data has not as of yet been properly fetched.
   if (
+    !food ||
     !nutritablesFetched ||
     !unitsFetched ||
     !usedUnits ||
     usedUnits.length === 0 ||
-    !unusedUnits ||
-    unusedUnits.length === 0
+    !unusedUnits
   ) {
     return <></>;
   }
@@ -179,7 +193,7 @@ export default function Read({ route }: Props) {
           <MacroInputField
             text={measurement}
             onChangeText={(text) => setMeasurement(text)}
-            unitSymbol={nutritables[0].unit.symbol}
+            unitSymbol={selectedNutritable?.unit.symbol || '- - -'}
             unitIndicatorWidth={60}
             iconName={'scale-unbalanced-solid'}
             maxLength={7}
@@ -263,12 +277,15 @@ export default function Read({ route }: Props) {
             </Pressable>
             {/* button: ADD nutritable */}
             <Pressable
-              style={styles.button}
+              style={[
+                styles.button,
+                unusedUnits.length === 0 && { backgroundColor: Colors.violet60 },
+              ]}
               disabled={unusedUnits.length === 0}
               onPress={() => navigation.navigate('Add', { food, units: unusedUnits })}>
               <IconSVG
                 name="solid-square-list-circle-plus"
-                color={'white'}
+                color={unusedUnits.length === 0 ? Colors.violet80 : 'white'}
                 width={28}
                 style={{ marginLeft: 4 }}
               />

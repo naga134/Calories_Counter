@@ -21,7 +21,7 @@ export type RootStackParamList = {
   List: { meal: Meal }; // Lists existing foods.
   Create: undefined; // Creates food.
 
-  Read: { meal: Meal; food: Food }; // Displays food and its nutritables, allows:
+  Read: { meal: Meal; foodId: number }; // Displays food and its nutritables, allows:
   // - Editing the food's name;
   // - Adding a specified amount of said food to a previously selected meal.
 

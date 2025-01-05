@@ -12,6 +12,12 @@ export const getAllFoods = async (database: SQLiteDatabase): Promise<Food[]> => 
   }));
 };
 
+export const getFoodById = async (database: SQLiteDatabase, params: { foodId: number }): Promise<Food | null> => {
+  const query = "SELECT * FROM foods WHERE id = $foodId;";
+  const queryResult = await database.getFirstAsync<Food>(query, toSQLiteParams(params));
+  return queryResult;
+};
+
 export const getAllFoodNames = async (database: SQLiteDatabase): Promise<string[]> => {
   const query = "SELECT name FROM foods;";
   const queryResult = await database.getAllAsync(query);

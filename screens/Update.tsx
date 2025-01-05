@@ -16,12 +16,15 @@ import MacrosBarChart from 'components/Screens/Create/MacrosBarChart';
 import MacroInputField from 'components/Screens/Create/MacroInputField';
 
 import { Food, Nutritable, Unit } from 'database/types';
-import { getAllFoodNames } from 'database/queries/foodsQueries';
+import { getAllFoodNames, updateFoodName } from 'database/queries/foodsQueries';
 
 import calculateCalories from 'utils/calculateCalories';
 import { validateFoodInputs } from 'utils/validation/validateFood';
 import { Validation, ValidationStatus } from 'utils/validation/types';
-import { StaticScreenProps } from '@react-navigation/native';
+import { StaticScreenProps, useNavigation } from '@react-navigation/native';
+import { updateNutritable } from 'database/queries/nutritablesQueries';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from 'navigation';
 
 type Props = StaticScreenProps<{
   food: Food;
@@ -35,6 +38,7 @@ export default function Update({ route }: Props) {
 
   const colors = useColors();
   const database: SQLiteDatabase = useSQLiteContext();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   // Fetches the names of all existing foods
   const { data: names = [], isFetched: namesFetched } = useQuery({
@@ -199,7 +203,26 @@ export default function Update({ route }: Props) {
                 (tempValidationStatus.status === ValidationStatus.Warning && validationAttempted)
               ) {
                 // Creates the nutritable and redirects to the foods list
-                console.log('nutritable/food updated!');
+                if (food.name !== name) {
+                  updateFoodName(database, { foodId: food.id, newFoodName: name });
+                }
+                if (
+                  kcals !== nutritable.kcals.toString() ||
+                  measure !== nutritable.baseMeasure.toString() ||
+                  fat !== nutritable.fats.toString() ||
+                  carbs !== nutritable.carbs.toString() ||
+                  protein !== nutritable.protein.toString()
+                ) {
+                  updateNutritable(database, {
+                    nutritableId: nutritable.id,
+                    baseMeasure: Number(measure),
+                    kcals: kcals.length === 0 ? Number(expectedKcals) : Number(kcals),
+                    protein: Number(protein),
+                    fats: Number(fat),
+                    carbs: Number(carbs),
+                  });
+                }
+                navigation.pop();
               } else {
                 // Makes this validation result available to the rest of the program.
                 setValidation(tempValidationStatus);
