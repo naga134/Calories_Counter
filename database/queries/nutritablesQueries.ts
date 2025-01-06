@@ -87,3 +87,24 @@ export const deleteNutritable = (database: SQLiteDatabase, params: {
     const query = `DELETE FROM nutritables WHERE id = $nutritableId;`
     return database.runSync(query, toSQLiteParams(params))
 }
+
+export const getNutritableById = async (database: SQLiteDatabase, params: { id: number }): Promise<Nutritable | null> => {
+    const query = "SELECT * FROM nutritables WHERE id = $id;"
+    return await database.getFirstAsync<Nutritable>(query, toSQLiteParams(params))
+}
+
+export const getNutritablesByIds = async (database: SQLiteDatabase, params: { ids: number[] }): Promise<Nutritable[]> => {
+    const { ids } = params;
+    if (ids.length === 0) return [];
+
+    const placeholders = ids.map((_, index) => `$id${index}`).join(", ");
+    const query = `SELECT * FROM nutritables WHERE id IN (${placeholders});`
+
+    // Building a dictionary of the sort "id0": "4" 
+    const paramDict: Record<string, number> = {};
+    params.ids.forEach((id, index) => {
+        paramDict[`id${index}`] = id;
+    });
+
+    return await database.getAllAsync<Nutritable>(query, toSQLiteParams(paramDict))
+}

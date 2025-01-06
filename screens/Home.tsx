@@ -1,5 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { deleteDatabaseSync, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  addDatabaseChangeListener,
+  deleteDatabaseSync,
+  SQLiteDatabase,
+  useSQLiteContext,
+} from 'expo-sqlite';
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Colors, Icon, Text, View } from 'react-native-ui-lib';
 import { Dimensions, Pressable, ScrollView, StyleSheet } from 'react-native';
@@ -21,6 +26,10 @@ import MacroLegendItem from 'components/Screens/List/MacroLegendItem';
 
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
+import { getEntriesByDate } from 'database/queries/entriesQueries';
+import { getNutritableById, getNutritablesByIds } from 'database/queries/nutritablesQueries';
+import proportion from 'utils/proportion';
+import { Nutritable } from 'database/types';
 
 type MacroName = keyof MacroColors;
 
@@ -73,9 +82,83 @@ export default function Home() {
     initialData: [],
   });
 
-  const [fat, setFat] = useState(0);
-  const [protein, setProtein] = useState(0);
-  const [carbohydrates, setCarbohydrates] = useState(0);
+  // FETCHING all relevant ENTRIES
+  const {
+    data: entries = [],
+    refetch: refetchEntries,
+    isFetched: entriesFetched,
+  } = useQuery({
+    queryKey: ['entries'],
+    queryFn: () => getEntriesByDate(database, { date: date.get() }),
+    initialData: [],
+  });
+
+  // FETCHING all relevant NUTRITABLES
+  const {
+    data: nutritables = [],
+    refetch: refetchNutritables,
+    // isLoading: nutritablesLoading,
+    // error: nutritablesError,
+  } = useQuery({
+    queryKey: ['nutritables'],
+    queryFn: () => {
+      // Makes a set out of the used ids, making sure their values are unique.
+      const tableIds = new Set(entries.map((entry) => entry.nutritableId));
+      // Fetches each unique nutritable.
+      return getNutritablesByIds(database, { ids: Array.from(tableIds) });
+    },
+    initialData: [],
+    enabled: entriesFetched && entries.length > 0,
+  });
+
+  useEffect(() => {
+    const listener = addDatabaseChangeListener((change) => {
+      if (change.tableName === 'entries') refetchEntries();
+      if (change.tableName === 'nutritables') refetchNutritables();
+    });
+    return () => {
+      listener.remove(); // Is this really necessary?
+    };
+  }, []);
+
+  useEffect(() => {
+    refetchEntries();
+    // refetchNutritables();
+  }, [date.get()]);
+
+  const { fat, protein, carbohydrates, kcals } = useMemo(() => {
+    if (!entries || entries.length === 0 || nutritables.length === 0) {
+      return {
+        fat: 0,
+        protein: 0,
+        carbohydrates: 0,
+        kcals: 0,
+      };
+    }
+
+    const nutritableMap = new Map<number, Nutritable>();
+    nutritables.forEach((n) => nutritableMap.set(n.id, n));
+
+    let totalFat = 0;
+    let totalProtein = 0;
+    let totalCarbs = 0;
+    let totalKcals = 0;
+
+    entries.forEach((entry) => {
+      const nutritable = nutritableMap.get(entry.nutritableId);
+      totalFat += proportion(nutritable.fats, entry.amount, nutritable.baseMeasure);
+      totalProtein += proportion(nutritable.protein, entry.amount, nutritable.baseMeasure);
+      totalCarbs += proportion(nutritable.carbs, entry.amount, nutritable.baseMeasure);
+      totalKcals += proportion(nutritable.kcals, entry.amount, nutritable.baseMeasure);
+    });
+
+    return {
+      fat: totalFat.toFixed(2),
+      protein: totalProtein.toFixed(2),
+      carbohydrates: totalCarbs.toFixed(2),
+      kcals: totalKcals.toFixed(0),
+    };
+  }, [entries, nutritables]);
 
   const macronutrients: { name: MacroName; grams: number }[] = [
     { name: 'fat', grams: fat },
@@ -113,7 +196,7 @@ export default function Home() {
     {
       color: colors.get('kcals'),
       iconName: 'ball-pile-solid',
-      amount: fat * 8 + carbohydrates * 4 + protein * 4,
+      amount: kcals,
       unit: 'g',
       onPress: () => {
         // setProtein(0), setCarbohydrates(0), setFat(0);

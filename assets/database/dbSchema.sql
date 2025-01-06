@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS "nutritables" (
 CREATE TABLE IF NOT EXISTS "entries" (
     "id" INTEGER UNIQUE PRIMARY KEY NOT NULL,
     "foodId" INTEGER NOT NULL,
-    "nutritablesId" INTEGER NOT NULL,
+    "nutritableId" INTEGER NOT NULL,
     "date" TEXT NOT NULL,
     "amount" REAL NOT NULL,
     "unitId" INTEGER NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS "entries" (
     -- An entry belongs to a food. One food can have many entries.
     FOREIGN KEY ("foodId") REFERENCES "foods" ("id"),
     -- An entry belongs to a nutritional table. One nutritional table can have many entries.
-    FOREIGN KEY ("nutritablesId") REFERENCES "nutritables" ("id")
+    FOREIGN KEY ("nutritableId") REFERENCES "nutritables" ("id")
 );
 -- Inserts measurement units.
 INSERT INTO units (symbol, id)

@@ -15,7 +15,7 @@ export interface Unit {
 export interface Entry {
     id: number;
     foodId: number;
-    nutrientsId: number;
+    nutritableId: number;
     date: Date;
     amount: number;
     unitId: number;

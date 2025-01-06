@@ -17,7 +17,7 @@ export default function App() {
     <GestureHandlerRootView>
       <QueryClientProvider client={queryClient}>
         <SQLiteProvider
-          databaseName="appDatabase.db"
+          databaseName="database.db"
           options={{ enableChangeListener: true }}
           assetSource={{
             assetId: require('assets/database/appDatabase.db'),

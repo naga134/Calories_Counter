@@ -21,6 +21,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'navigation';
 import proportion from 'utils/proportion';
 import { deleteFood, getFoodById } from 'database/queries/foodsQueries';
+import { createEntry } from 'database/queries/entriesQueries';
+import { useDate } from 'context/DateContext';
 
 type Props = StaticScreenProps<{
   foodId: number;
@@ -45,6 +47,7 @@ export default function Read({ route }: Props) {
   const screenWidth = Dimensions.get('window').width;
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const database: SQLiteDatabase = useSQLiteContext();
+  const date = useDate();
 
   const {
     data: food,
@@ -68,10 +71,12 @@ export default function Read({ route }: Props) {
   });
 
   // REFETCHES the food's nutritables on database change
-  addDatabaseChangeListener((change) => {
-    if (change.tableName === 'nutritables') refetchNutritables();
-    if (change.tableName === 'foods') refetchFood();
-  });
+  useEffect(() => {
+    addDatabaseChangeListener((change) => {
+      if (change.tableName === 'nutritables') refetchNutritables();
+      if (change.tableName === 'foods') refetchFood();
+    });
+  }, []); // in useEffect: drops this listener when component unmounts.
 
   // FETCHING all possible measurement units
   const { data: allUnits = [], isFetched: unitsFetched }: UnitsQueryReturn = useQuery({
@@ -296,7 +301,21 @@ export default function Read({ route }: Props) {
               />
             </Pressable>
             {/* button: create ENTRY */}
-            <TouchableOpacity style={styles.button} onPress={() => console.log('Create Entry')}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                // TODO: VALIDATE FIRST!
+                const queryResult = createEntry(database, {
+                  foodId: food.id,
+                  nutritableId: selectedNutritable.id,
+                  date: date.get(),
+                  amount: Number(measurement),
+                  unitId: selectedNutritable.unit.id,
+                  mealId: meal.id,
+                });
+                // console.log(queryResult);
+                navigation.popTo('Home');
+              }}>
               <IconSVG name="utensils-solid" color={'white'} width={24} />
             </TouchableOpacity>
           </View>
