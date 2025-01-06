@@ -16,17 +16,22 @@ import MacrosBarChart from 'components/Screens/Create/MacrosBarChart';
 import MacroInputField from 'components/Screens/Create/MacroInputField';
 
 import { Unit } from 'database/types';
-import { getAllFoodNames } from 'database/queries/foodsQueries';
+import { createFood, getAllFoodNames } from 'database/queries/foodsQueries';
 
 import calculateCalories from 'utils/calculateCalories';
 import { validateFoodInputs } from 'utils/validation/validateFood';
 import { Validation, ValidationStatus } from 'utils/validation/types';
+import { createNutritable } from 'database/queries/nutritablesQueries';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from 'navigation';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 // (!!!) This screen produces a warning due to nesting UnitPicker inside a KeyboardAwareScrollView.
 // Nevertheless, this is strictly necessary to avoid the keyboard from covering the bottom-most input fields.
 export default function Create() {
   const colors = useColors();
   const database: SQLiteDatabase = useSQLiteContext();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   // Fetches the names of all existing foods
   const { data: names = [], isFetched: namesFetched } = useQuery({
@@ -198,7 +203,17 @@ export default function Create() {
                 (tempValidationStatus.status === ValidationStatus.Warning && validationAttempted)
               ) {
                 // Creates the food and the nutritable and redirects to the foods list
-                console.log('food created!');
+                const foodQueryResult = createFood(database, { foodName: name });
+                createNutritable(database, {
+                  foodId: foodQueryResult.lastInsertRowId,
+                  unitId: selectedUnit.id,
+                  baseMeasure: Number(measure),
+                  kcals: kcals.length === 0 ? Number(expectedKcals) : Number(kcals),
+                  protein: Number(protein),
+                  carbs: Number(carbs),
+                  fats: Number(fat),
+                });
+                navigation.pop();
               } else {
                 // Makes this validation result available to the rest of the program.
                 setValidation(tempValidationStatus);

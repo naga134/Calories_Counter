@@ -98,9 +98,6 @@ export default function Read({ route }: Props) {
 
   useEffect(() => setSelectedNutritable(nutritables[0]), [nutritablesFetched, nutritables]);
 
-  // console.log('UNUSED');
-  // useEffect(() => console.log(unusedUnits), [unusedUnits]);
-
   // THIS TOGGLES THE VIEW MODE
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Simple);
   // Simple: displays the bar chart as seen before
@@ -156,8 +153,6 @@ export default function Read({ route }: Props) {
     setMacros(calculatedMacros);
   }, [calculatedMacros]);
 
-  console.log(food);
-
   // Return a blank screen if the relevant data has not as of yet been properly fetched.
   if (
     !food ||
@@ -173,7 +168,7 @@ export default function Read({ route }: Props) {
   return (
     <>
       <Portal.Host>
-        <Portal></Portal>
+        <Portal>{/* display any necessary pop-ups here */}</Portal>
         <KeyboardAwareScrollView
           behavior="padding"
           nestedScrollEnabled
@@ -276,7 +271,7 @@ export default function Read({ route }: Props) {
             <Pressable
               style={styles.button}
               onPress={() =>
-                navigation.navigate('Update', { food, nutritable: selectedNutritable })
+                navigation.navigate('Update', { food, nutritable: selectedNutritable! })
               }>
               <IconSVG
                 name="solid-square-list-pen"
