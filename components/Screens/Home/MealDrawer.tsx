@@ -45,8 +45,6 @@ export default function MealDrawer({ meal }: MealDrawerProps) {
   const date = useDate();
   const database: SQLiteDatabase = useSQLiteContext();
 
-  console.log(date.get());
-
   // FETCHING all relevant ENTRIES
   const {
     data: entries = [],
