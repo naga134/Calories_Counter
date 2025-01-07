@@ -19,9 +19,9 @@ export const createEntry = (
     return database.runSync(query, toSQLiteParams({ ...params, date: params.date.toDateString() /* timezone issues? */ }));
 }
 
-export const getEntriesByDate = (database: SQLiteDatabase, params: { date: Date }): Entry[] => {
+export const getEntriesByDate = async (database: SQLiteDatabase, params: { date: Date }): Promise<Entry[]> => {
     const query = "SELECT * FROM entries WHERE date = $date"
-    const queryResult = database.getAllSync(query, toSQLiteParams({ date: params.date.toDateString() }))
+    const queryResult = await database.getAllAsync(query, toSQLiteParams({ date: params.date.toDateString() }))
     return queryResult.map((row: any) => ({
         id: row.id,
         foodId: row.foodId,
@@ -31,4 +31,20 @@ export const getEntriesByDate = (database: SQLiteDatabase, params: { date: Date 
         unitId: row.unitId,
         mealId: row.mealId
     }))
+}
+
+export const getEntriesByMealAndDate = async (database: SQLiteDatabase, params: { date: Date, mealId: number }): Promise<Entry[]> => {
+    const { date, mealId } = params;
+    const query = "SELECT * FROM entries WHERE date = $date AND mealId = $mealId"
+    const queryResult = await database.getAllAsync(query, toSQLiteParams({ date: date.toDateString(), mealId }));
+    return queryResult.map((row: any) => ({
+        id: row.id,
+        foodId: row.foodId,
+        nutritableId: row.nutritableId,
+        date: new Date(row.date),
+        amount: row.amount,
+        unitId: row.unitId,
+        mealId: row.mealId
+    }))
+
 }

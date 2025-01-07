@@ -18,6 +18,21 @@ export const getFoodById = async (database: SQLiteDatabase, params: { foodId: nu
   return queryResult;
 };
 
+export const getFoodsByIds = async (database: SQLiteDatabase, params: { ids: number[] }): Promise<Food[]> => {
+  const { ids } = params;
+  if (ids.length === 0) return [];
+
+  const placeholders = ids.map((_, index) => `$id${index}`).join(", ");
+  const query = `SELECT * FROM foods WHERE id IN (${placeholders});`
+
+  const paramDict: Record<string, number> = {};
+  params.ids.forEach((id, index) => {
+    paramDict[`id${index}`] = id;
+  });
+
+  return await database.getAllAsync<Food>(query, toSQLiteParams(paramDict))
+}
+
 export const getAllFoodNames = async (database: SQLiteDatabase): Promise<string[]> => {
   const query = "SELECT name FROM foods;";
   const queryResult = await database.getAllAsync(query);
@@ -38,11 +53,6 @@ export const updateFoodName = (database: SQLiteDatabase, params: { foodId: numbe
   const query = `UPDATE foods SET name = $newFoodName WHERE id = $foodId;`;
   return database.runSync(query, toSQLiteParams(params));
 }
-
-
-
-// import toSQLiteParameters from "../functions/toSQLiteParameters";
-
 
 
 

@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
-import { ExpandableSection, Text, View, Colors, Button } from 'react-native-ui-lib';
+import { ExpandableSection, Text, View, Colors, Button, Drawer } from 'react-native-ui-lib';
 
 import IconSVG from '../../Shared/icons/IconSVG';
 import RotatingCaret from './RotatingCaret';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from 'navigation';
-import { Meal } from 'database/types';
+import { Food, Meal, Nutritable } from 'database/types';
+import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+import { useQuery } from '@tanstack/react-query';
+import { getEntriesByMealAndDate } from 'database/queries/entriesQueries';
+import { useDate } from 'context/DateContext';
+import { getNutritablesByIds } from 'database/queries/nutritablesQueries';
+import { getFoodsByIds } from 'database/queries/foodsQueries';
+import { FlatList } from 'react-native-gesture-handler';
+import proportion from 'utils/proportion';
+import { useColors } from 'context/ColorContext';
+import { getAllUnits } from 'database/queries/unitsQueries';
 
 type MealDrawerProps = {
   meal: Meal;
@@ -19,17 +29,103 @@ type DrawerHeaderProps = {
 
 type DrawerBodyProps = {
   meal: Meal;
+  entries: EntrySummary[];
+};
+
+type EntrySummary = {
+  id: number;
+  amount: number;
+  food: Food;
+  nutritableId: number;
+  unit: string;
+  kcals: number;
 };
 
 export default function MealDrawer({ meal }: MealDrawerProps) {
   const [expanded, setExpanded] = useState(false);
+
+  const date = useDate();
+  const database: SQLiteDatabase = useSQLiteContext();
+
+  console.log(date.get());
+
+  // FETCHING all relevant ENTRIES
+  const {
+    data: entries = [],
+    refetch: refetchEntries,
+    isFetched: entriesFetched,
+    isLoading: entriesLoading,
+  } = useQuery({
+    queryKey: [`MealNo.${meal.id}Entries`],
+    queryFn: () => getEntriesByMealAndDate(database, { date: date.get(), mealId: meal.id }),
+    initialData: [],
+  });
+
+  // FETCHING all relevant NUTRITABLES
+  const {
+    data: nutritables = [],
+    refetch: refetchNutritables,
+    isFetched: nutritablesFetched,
+    isLoading: nutritablesLoading,
+  } = useQuery({
+    queryKey: [`MealNo.${meal.id}Nutritables`],
+    queryFn: () => {
+      const tableIds = new Set(entries.map((entry) => entry.nutritableId));
+      return getNutritablesByIds(database, { ids: Array.from(tableIds) });
+    },
+    initialData: [],
+    enabled: entriesFetched && entries.length > 0,
+  });
+
+  // FETCHING all relevant FOODS
+  const {
+    data: foods = [],
+    refetch: refetchFoods,
+    isFetched: foodsFetched,
+    isLoading: foodsLoading,
+  } = useQuery({
+    queryKey: [`MealNo.${meal.id}Foods`],
+    queryFn: () => {
+      const tableIds = new Set(entries.map((entry) => entry.foodId));
+      return getFoodsByIds(database, { ids: Array.from(tableIds) });
+    },
+    initialData: [],
+    enabled: entriesFetched && entries.length > 0,
+  });
+
+  // FETCHING all UNITS
+  const { data: units = [], isFetched: unitsFetched } = useQuery({
+    queryKey: ['allUnits'],
+    queryFn: () => getAllUnits(database),
+    initialData: [],
+  });
+
+  useEffect(() => {
+    refetchEntries();
+  }, [date.get()]);
+
+  const entriesSummary: EntrySummary[] = useMemo(() => {
+    if (foodsFetched && nutritablesFetched) {
+      return entries.map((entry) => {
+        const nutritable = nutritables.find((table) => table.id === entry.nutritableId);
+        return {
+          id: entry.id,
+          amount: entry.amount,
+          food: foods.find((foods) => foods.id === entry.foodId),
+          nutritableId: entry.nutritableId,
+          kcals: proportion(nutritable?.kcals, entry.amount, nutritable?.baseMeasure),
+          unit: units.find((unit) => unit.id === nutritable.unitId)?.symbol,
+        };
+      });
+    } else return entriesSummary; // 0.o this seems to work
+  }, [entries, nutritables, foods]);
 
   return (
     <ExpandableSection
       expanded={expanded}
       onPress={() => setExpanded(!expanded)}
       sectionHeader={<DrawerHeader mealName={meal.name} expanded={expanded} />}>
-      <DrawerBody meal={meal} />
+      <DrawerBody meal={meal} entries={entriesSummary} />
     </ExpandableSection>
   );
 }
@@ -64,12 +160,55 @@ function DrawerHeader({ expanded, mealName }: DrawerHeaderProps) {
 
 // This is the body for each meal's drawer.
 // It should contain: each food, its amount, its caloric total; "add food" button.
-function DrawerBody({ meal }: DrawerBodyProps) {
+function DrawerBody({ meal, entries }: DrawerBodyProps) {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const colors = useColors();
 
   return (
     <View style={styles.sectionBody}>
       {/* Each entry COMES HERE*/}
+      {entries?.map(
+        (entry) =>
+          entry.food && (
+            <View row key={entry.id}>
+              <View
+                flex
+                style={{
+                  // width: '',
+                  paddingStart: 20,
+                  paddingEnd: 8,
+                  backgroundColor: Colors.violet80,
+                  paddingVertical: 8,
+                  borderTopStartRadius: 100,
+                  borderBottomStartRadius: 100,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                }}>
+                {/* <Text violet40>{`${entry.kcals} kcal `}</Text> */}
+                <Text style={{ flex: 1, fontSize: 16 }}>{entry.food.name}</Text>
+                <Text violet50>{`${entry.amount}${entry.unit}`}</Text>
+              </View>
+              <View
+                row
+                center
+                style={{
+                  backgroundColor: Colors.violet50,
+                  borderTopEndRadius: 100,
+                  borderBottomEndRadius: 100,
+                  minWidth: 68,
+                  paddingEnd: 12,
+                  paddingStart: 8,
+                  paddingVertical: 4,
+                  gap: 4,
+                }}>
+                <IconSVG name="ball-pile-solid" color={Colors.violet40} width={12} />
+                <Text violet40>{entry.kcals}</Text>
+              </View>
+            </View>
+          )
+      )}
+
       <TouchableOpacity
         onPress={() => navigation.navigate('List', { meal })}
         style={{
@@ -103,6 +242,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.grey80,
     minHeight: 60,
     paddingVertical: 10,
+    paddingHorizontal: 16,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     alignItems: 'center',
