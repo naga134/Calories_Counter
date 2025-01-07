@@ -48,3 +48,8 @@ export const getEntriesByMealAndDate = async (database: SQLiteDatabase, params: 
     }))
 
 }
+
+export const deleteEntry = (database: SQLiteDatabase, params: { entryId: number }) => {
+    const query = `DELETE FROM entries WHERE id = $entryId;`
+    return database.runSync(query, toSQLiteParams(params));
+};

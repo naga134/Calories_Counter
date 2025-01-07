@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
-import { ExpandableSection, Text, View, Colors, Button, Drawer } from 'react-native-ui-lib';
+import { ExpandableSection, Text, View, Colors, Button, Drawer, Icon } from 'react-native-ui-lib';
 
 import IconSVG from '../../Shared/icons/IconSVG';
 import RotatingCaret from './RotatingCaret';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from 'navigation';
 import { Food, Meal, Nutritable } from 'database/types';
-import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { useQuery } from '@tanstack/react-query';
-import { getEntriesByMealAndDate } from 'database/queries/entriesQueries';
+import { deleteEntry, getEntriesByMealAndDate } from 'database/queries/entriesQueries';
 import { useDate } from 'context/DateContext';
 import { getNutritablesByIds } from 'database/queries/nutritablesQueries';
 import { getFoodsByIds } from 'database/queries/foodsQueries';
@@ -101,6 +101,15 @@ export default function MealDrawer({ meal }: MealDrawerProps) {
   });
 
   useEffect(() => {
+    const listener = addDatabaseChangeListener((change) => {
+      if (change.tableName === 'entries') refetchEntries();
+    });
+    return () => {
+      listener.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     refetchEntries();
   }, [date.get()]);
 
@@ -161,8 +170,9 @@ function DrawerHeader({ expanded, mealName }: DrawerHeaderProps) {
 // This is the body for each meal's drawer.
 // It should contain: each food, its amount, its caloric total; "add food" button.
 function DrawerBody({ meal, entries }: DrawerBodyProps) {
+  const database: SQLiteDatabase = useSQLiteContext();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const colors = useColors();
+  const screenWidth = Dimensions.get('window').width;
 
   return (
     <View style={styles.sectionBody}>
@@ -170,42 +180,70 @@ function DrawerBody({ meal, entries }: DrawerBodyProps) {
       {entries?.map(
         (entry) =>
           entry.food && (
-            <View row key={entry.id}>
-              <View
-                flex
-                style={{
-                  // width: '',
-                  paddingStart: 20,
-                  paddingEnd: 8,
-                  backgroundColor: Colors.violet80,
-                  paddingVertical: 8,
-                  borderTopStartRadius: 100,
-                  borderBottomStartRadius: 100,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                }}>
-                {/* <Text violet40>{`${entry.kcals} kcal `}</Text> */}
-                <Text style={{ flex: 1, fontSize: 16 }}>{entry.food.name}</Text>
-                <Text violet50>{`${entry.amount}${entry.unit}`}</Text>
+            <Drawer
+              disableHaptic
+              itemsTintColor=""
+              style={{ flex: 1, borderRadius: 100 }}
+              key={entry.id}
+              bounciness={100}
+              fullSwipeRight
+              onFullSwipeRight={() => deleteEntry(database, { entryId: entry.id })}
+              rightItems={[
+                {
+                  customElement: (
+                    <View centerH>
+                      <IconSVG
+                        name="trash-circle-solid"
+                        color={Colors.violet40}
+                        width={28}
+                        // style={{ marginRight: 2 }}
+                      />
+                    </View>
+                  ),
+                  style: { borderRadius: 100 },
+                  background: Colors.grey80,
+                  onPress: () => {
+                    () => deleteEntry(database, { entryId: entry.id });
+                  },
+                },
+              ]}>
+              <View row key={entry.id} style={{ flex: 1, width: screenWidth * 0.8 * 0.88 }}>
+                <View
+                  flex
+                  style={{
+                    // width:
+                    paddingStart: 20,
+                    paddingEnd: 8,
+                    backgroundColor: Colors.violet80,
+                    paddingVertical: 8,
+                    borderTopStartRadius: 100,
+                    borderBottomStartRadius: 100,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}>
+                  {/* <Text violet40>{`${entry.kcals} kcal `}</Text> */}
+                  <Text style={{ flex: 1, fontSize: 16 }}>{entry.food.name}</Text>
+                  <Text violet50>{`${entry.amount}${entry.unit}`}</Text>
+                </View>
+                <View
+                  row
+                  center
+                  style={{
+                    backgroundColor: Colors.violet50,
+                    borderTopEndRadius: 100,
+                    borderBottomEndRadius: 100,
+                    minWidth: 68,
+                    paddingEnd: 12,
+                    paddingStart: 8,
+                    paddingVertical: 4,
+                    gap: 4,
+                  }}>
+                  <IconSVG name="ball-pile-solid" color={Colors.violet40} width={12} />
+                  <Text violet40>{entry.kcals}</Text>
+                </View>
               </View>
-              <View
-                row
-                center
-                style={{
-                  backgroundColor: Colors.violet50,
-                  borderTopEndRadius: 100,
-                  borderBottomEndRadius: 100,
-                  minWidth: 68,
-                  paddingEnd: 12,
-                  paddingStart: 8,
-                  paddingVertical: 4,
-                  gap: 4,
-                }}>
-                <IconSVG name="ball-pile-solid" color={Colors.violet40} width={12} />
-                <Text violet40>{entry.kcals}</Text>
-              </View>
-            </View>
+            </Drawer>
           )
       )}
 
