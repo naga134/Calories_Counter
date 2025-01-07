@@ -123,8 +123,11 @@ export default function Home() {
 
   useEffect(() => {
     refetchEntries();
-    // refetchNutritables();
   }, [date.get()]);
+
+  useEffect(() => {
+    refetchNutritables();
+  }, [entries]);
 
   const { fat, protein, carbohydrates, kcals } = useMemo(() => {
     if (!entries || entries.length === 0 || nutritables.length === 0) {
@@ -137,6 +140,11 @@ export default function Home() {
     }
 
     const nutritableMap = new Map<number, Nutritable>();
+
+    if (!entries?.length || !nutritables?.length) {
+      return { fat: 0, protein: 0, carbohydrates: 0, kcals: 0 };
+    }
+
     nutritables.forEach((n) => nutritableMap.set(n.id, n));
 
     let totalFat = 0;
@@ -146,6 +154,10 @@ export default function Home() {
 
     entries.forEach((entry) => {
       const nutritable = nutritableMap.get(entry.nutritableId);
+      if (!nutritable) {
+        // In case an entry references a nutritable that doesn't exist yet
+        return;
+      }
       totalFat += proportion(nutritable.fats, entry.amount, nutritable.baseMeasure);
       totalProtein += proportion(nutritable.protein, entry.amount, nutritable.baseMeasure);
       totalCarbs += proportion(nutritable.carbs, entry.amount, nutritable.baseMeasure);

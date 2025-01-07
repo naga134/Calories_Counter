@@ -103,6 +103,8 @@ export default function MealDrawer({ meal }: MealDrawerProps) {
   useEffect(() => {
     const listener = addDatabaseChangeListener((change) => {
       if (change.tableName === 'entries') refetchEntries();
+      if (change.tableName === 'nutritables') refetchNutritables();
+      if (change.tableName === 'foods') refetchFoods();
     });
     return () => {
       listener.remove();
@@ -113,21 +115,43 @@ export default function MealDrawer({ meal }: MealDrawerProps) {
     refetchEntries();
   }, [date.get()]);
 
+  useEffect(() => {
+    refetchFoods();
+    refetchNutritables();
+  }, [entries]);
+
   const entriesSummary: EntrySummary[] = useMemo(() => {
-    if (foodsFetched && nutritablesFetched) {
-      return entries.map((entry) => {
-        const nutritable = nutritables.find((table) => table.id === entry.nutritableId);
+    if (!foodsFetched || !nutritablesFetched) {
+      return [];
+    }
+
+    return entries.map((entry) => {
+      const nutritable = nutritables.find((table) => table.id === entry.nutritableId);
+      const food = foods.find((f) => f.id === entry.foodId);
+
+      if (!nutritable) {
+        // Fallback if no matching nutritable exists
         return {
           id: entry.id,
           amount: entry.amount,
-          food: foods.find((foods) => foods.id === entry.foodId),
+          food,
           nutritableId: entry.nutritableId,
-          kcals: proportion(nutritable?.kcals, entry.amount, nutritable?.baseMeasure),
-          unit: units.find((unit) => unit.id === nutritable.unitId)?.symbol,
+          kcals: 0,
+          unit: '',
         };
-      });
-    } else return entriesSummary; // 0.o this seems to work
-  }, [entries, nutritables, foods]);
+      }
+
+      return {
+        id: entry.id,
+        amount: entry.amount,
+        food,
+        nutritableId: entry.nutritableId,
+        kcals: proportion(nutritable.kcals, entry.amount, nutritable.baseMeasure),
+        // use optional chaining on unitId:
+        unit: units.find((u) => u.id === nutritable.unitId)?.symbol ?? '',
+      };
+    });
+  }, [entries, nutritables, foods, foodsFetched, nutritablesFetched, units]);
 
   return (
     <ExpandableSection
@@ -203,7 +227,7 @@ function DrawerBody({ meal, entries }: DrawerBodyProps) {
                   style: { borderRadius: 100 },
                   background: Colors.grey80,
                   onPress: () => {
-                    () => deleteEntry(database, { entryId: entry.id });
+                    deleteEntry(database, { entryId: entry.id });
                   },
                 },
               ]}>
