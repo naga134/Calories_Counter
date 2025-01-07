@@ -6,16 +6,14 @@ import IconSVG from '../../Shared/icons/IconSVG';
 import RotatingCaret from './RotatingCaret';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from 'navigation';
-import { Food, Meal, Nutritable } from 'database/types';
+import { Food, Meal } from 'database/types';
 import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { useQuery } from '@tanstack/react-query';
 import { deleteEntry, getEntriesByMealAndDate } from 'database/queries/entriesQueries';
 import { useDate } from 'context/DateContext';
 import { getNutritablesByIds } from 'database/queries/nutritablesQueries';
 import { getFoodsByIds } from 'database/queries/foodsQueries';
-import { FlatList } from 'react-native-gesture-handler';
 import proportion from 'utils/proportion';
-import { useColors } from 'context/ColorContext';
 import { getAllUnits } from 'database/queries/unitsQueries';
 
 type MealDrawerProps = {

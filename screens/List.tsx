@@ -36,7 +36,7 @@ export default function List({ route }: Props) {
   // Retrieving the list of daily meals from the database
   const {
     data: foods = [],
-    isFetched,
+    isLoading,
     refetch,
   } = useQuery({
     queryKey: ['foods'],
@@ -66,6 +66,8 @@ export default function List({ route }: Props) {
   );
 
   // TODO: Apply LOADING effect while data is fetching or refetching
+
+  if (isLoading) return <></>;
 
   return (
     <>

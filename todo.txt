@@ -1,29 +1,10 @@
-STOPPED AT CREATE ITEM
+TODO:
 
-- Create custom TextInput component
-
-CREATE ITEM SCREEN
-
-- Add custom TextInput to each field of Create Item
-- Implement validation
-- Create the item and redirect to the list screen, remounting it if need be (or invert the flatlist?)
-
-EDIT ITEM SCREEN
-
-- Use same layout as ITEM SCREEN
-- Validation should be the same
-
-LIST SCREEN
-
-- Implement adding to meal logic
-
-HOME SCREEN
-
-- Get all entries and run diagnostics
+handle entries with deleted food items
 
 KNOWN ISSUES:
 
-- unit picker doesn't always scroll on click
+unit picker doesn't always scroll on click
 
 WOULD BE INTERESTING TO DO:
 
