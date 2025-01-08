@@ -18,6 +18,10 @@ import { getAllUnits } from 'database/queries/unitsQueries';
 
 type MealDrawerProps = {
   meal: Meal;
+  summaries: {
+    day: MacroSummary;
+    meal: MacroSummary;
+  };
 };
 
 type DrawerHeaderProps = {
@@ -28,6 +32,10 @@ type DrawerHeaderProps = {
 type DrawerBodyProps = {
   meal: Meal;
   entries: EntrySummary[];
+  summaries: {
+    day: MacroSummary;
+    meal: MacroSummary;
+  };
 };
 
 type EntrySummary = {
@@ -39,7 +47,15 @@ type EntrySummary = {
   kcals: number;
 };
 
-export default function MealDrawer({ meal }: MealDrawerProps) {
+export type MacroSummary = {
+  mealId?: number;
+  kcals: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+};
+
+export default function MealDrawer({ meal, summaries }: MealDrawerProps) {
   const [expanded, setExpanded] = useState(false);
 
   const date = useDate();

@@ -60,12 +60,12 @@ VALUES ('g', 1),
     ('cup', 6),
     ('oz', 7);
 -- Inserts initial ("out-of-the-box") meals.
-INSERT INTO meals (name, isDeleted)
-VALUES ('breakfast', 0),
-    ('morning snack', 0),
-    ('lunch', 0),
-    ('afternoon snack', 0),
-    ('dinner', 0);
+INSERT INTO meals (id, name, isDeleted)
+VALUES (1, 'Breakfast', 0),
+    (2, 'Morning', 0),
+    (3, 'Lunch', 0),
+    (4, 'Afternoon', 0),
+    (5, 'Dinner', 0);
 -- Inserts initial foods (for ease of development only - DELETE FOR PRODUCTION)
 INSERT INTO foods (id, name, isDeleted)
 VALUES (1, 'Milk', 0),

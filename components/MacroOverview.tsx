@@ -5,11 +5,10 @@ import { Colors, Text } from 'react-native-ui-lib';
 type MacroOverviewProps = {
   color: string;
   iconName: 'meat-solid' | 'wheat-solid' | 'bacon-solid' | 'ball-pile-solid';
-  amount: number;
-  unit: string;
+  amount: string;
 };
 
-export default function MacroOverview({ color, iconName, amount, unit }: MacroOverviewProps) {
+export default function MacroOverview({ color, iconName, amount }: MacroOverviewProps) {
   return (
     <Pressable
       style={{

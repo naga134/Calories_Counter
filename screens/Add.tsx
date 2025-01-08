@@ -171,7 +171,9 @@ export default function Add({ route }: Props) {
             style={{ borderRadius: 12 }}
             disabled={validation.status === ValidationStatus.Error}
             label={
-              validation.status === ValidationStatus.Warning ? 'Proceed anyway' : 'Create food'
+              validation.status === ValidationStatus.Warning
+                ? 'Proceed anyway'
+                : 'Add'
             }
             onPress={() => {
               // Validates the current data

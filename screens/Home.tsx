@@ -30,6 +30,7 @@ import { getEntriesByDate } from 'database/queries/entriesQueries';
 import { getNutritableById, getNutritablesByIds } from 'database/queries/nutritablesQueries';
 import proportion from 'utils/proportion';
 import { Nutritable } from 'database/types';
+import { useMealSummaries } from 'context/SummariesContext';
 
 type MacroName = keyof MacroColors;
 
@@ -74,6 +75,7 @@ export default function Home() {
 
   const database: SQLiteDatabase = useSQLiteContext();
   const queryClient: QueryClient = useQueryClient();
+  const { day, breakfast, morning, lunch, afternoon, dinner } = useMealSummaries();
 
   // Retrieving the list of daily meals from the database
   const { data: meals = [] } = useQuery({
@@ -82,100 +84,10 @@ export default function Home() {
     initialData: [],
   });
 
-  // FETCHING all relevant ENTRIES
-  const {
-    data: entries = [],
-    refetch: refetchEntries,
-    isFetched: entriesFetched,
-  } = useQuery({
-    queryKey: ['entries'],
-    queryFn: () => getEntriesByDate(database, { date: date.get() }),
-    initialData: [],
-  });
-
-  // FETCHING all relevant NUTRITABLES
-  const {
-    data: nutritables = [],
-    refetch: refetchNutritables,
-    // isLoading: nutritablesLoading,
-    // error: nutritablesError,
-  } = useQuery({
-    queryKey: ['nutritables'],
-    queryFn: () => {
-      // Makes a set out of the used ids, making sure their values are unique.
-      const tableIds = new Set(entries.map((entry) => entry.nutritableId));
-      // Fetches each unique nutritable.
-      return getNutritablesByIds(database, { ids: Array.from(tableIds) });
-    },
-    initialData: [],
-    enabled: entriesFetched && entries.length > 0,
-  });
-
-  useEffect(() => {
-    const listener = addDatabaseChangeListener((change) => {
-      if (change.tableName === 'entries') refetchEntries();
-      if (change.tableName === 'nutritables') refetchNutritables();
-    });
-    return () => {
-      listener.remove(); // Is this really necessary?
-    };
-  }, []);
-
-  useEffect(() => {
-    refetchEntries();
-  }, [date.get()]);
-
-  useEffect(() => {
-    refetchNutritables();
-  }, [entries]);
-
-  const { fat, protein, carbohydrates, kcals } = useMemo(() => {
-    if (!entries || entries.length === 0 || nutritables.length === 0) {
-      return {
-        fat: 0,
-        protein: 0,
-        carbohydrates: 0,
-        kcals: 0,
-      };
-    }
-
-    const nutritableMap = new Map<number, Nutritable>();
-
-    if (!entries?.length || !nutritables?.length) {
-      return { fat: 0, protein: 0, carbohydrates: 0, kcals: 0 };
-    }
-
-    nutritables.forEach((n) => nutritableMap.set(n.id, n));
-
-    let totalFat = 0;
-    let totalProtein = 0;
-    let totalCarbs = 0;
-    let totalKcals = 0;
-
-    entries.forEach((entry) => {
-      const nutritable = nutritableMap.get(entry.nutritableId);
-      if (!nutritable) {
-        // In case an entry references a nutritable that doesn't exist yet
-        return;
-      }
-      totalFat += proportion(nutritable.fats, entry.amount, nutritable.baseMeasure);
-      totalProtein += proportion(nutritable.protein, entry.amount, nutritable.baseMeasure);
-      totalCarbs += proportion(nutritable.carbs, entry.amount, nutritable.baseMeasure);
-      totalKcals += proportion(nutritable.kcals, entry.amount, nutritable.baseMeasure);
-    });
-
-    return {
-      fat: totalFat.toFixed(2),
-      protein: totalProtein.toFixed(2),
-      carbohydrates: totalCarbs.toFixed(2),
-      kcals: totalKcals.toFixed(0),
-    };
-  }, [entries, nutritables]);
-
   const macronutrients: { name: MacroName; grams: number }[] = [
-    { name: 'fat', grams: fat },
-    { name: 'protein', grams: protein },
-    { name: 'carbs', grams: carbohydrates },
+    { name: 'fat', grams: day.fat },
+    { name: 'protein', grams: day.protein },
+    { name: 'carbs', grams: day.carbs },
   ];
 
   // Adding insignificant data to ensure the drawing of the graph even for empty macros
@@ -187,36 +99,30 @@ export default function Home() {
     {
       color: colors.get('fat'),
       iconName: 'bacon-solid',
-      amount: fat,
-      unit: 'g',
-      // onPress: () => setFat(fat + 10),
+      amount: day.fat.toFixed(2),
     },
     {
       color: colors.get('carbs'),
       iconName: 'wheat-solid',
-      amount: carbohydrates,
-      unit: 'g',
-      // onPress: () => setCarbohydrates(carbohydrates + 10),
+      amount: day.carbs.toFixed(2),
     },
     {
       color: colors.get('protein'),
       iconName: 'meat-solid',
-      amount: protein,
-      unit: 'g',
-      // onPress: () => setProtein(protein + 10),
+      amount: day.protein.toFixed(2),
     },
     {
       color: colors.get('kcals'),
       iconName: 'ball-pile-solid',
-      amount: kcals,
-      unit: 'g',
-      onPress: () => {
-        // setProtein(0), setCarbohydrates(0), setFat(0);
-      },
+      amount: day.kcals.toFixed(2),
     },
   ] as const;
 
   // SECTION 4: Component itself
+
+  console.log('day ' + day.kcals);
+  console.log('breakfast: ' + breakfast.kcals);
+  console.log('morning: ' + morning.kcals);
 
   return (
     <>
@@ -245,7 +151,6 @@ export default function Home() {
               color={macro.color}
               iconName={macro.iconName}
               amount={macro.amount}
-              unit={macro.unit}
             />
           ))}
         </View>
@@ -269,9 +174,22 @@ export default function Home() {
         </View>
         {/* Meals' List */}
         <View style={{ gap: 10, paddingTop: 10, paddingBottom: 40 }}>
-          {meals.map((meal) => (
-            <MealDrawer key={meal.id} meal={meal} />
-          ))}
+          {meals.map((meal) => {
+            const emptySummary = { mealId: meal.id, kcals: 0, fat: 0, protein: 0, carbs: 0 };
+            const mealSummary = [breakfast, morning, lunch, afternoon, dinner].find(
+              (summary) => summary.mealId === meal.id
+            );
+            return (
+              <MealDrawer
+                key={meal.id}
+                meal={meal}
+                summaries={{
+                  day,
+                  meal: mealSummary || emptySummary,
+                }}
+              />
+            );
+          })}
         </View>
       </ScrollView>
     </>
