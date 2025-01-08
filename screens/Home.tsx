@@ -1,10 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  addDatabaseChangeListener,
-  deleteDatabaseSync,
-  SQLiteDatabase,
-  useSQLiteContext,
-} from 'expo-sqlite';
+import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Colors, Icon, Text, View } from 'react-native-ui-lib';
 import { Dimensions, Pressable, ScrollView, StyleSheet } from 'react-native';
@@ -26,10 +21,6 @@ import MacroLegendItem from 'components/Screens/List/MacroLegendItem';
 
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
-import { getEntriesByDate } from 'database/queries/entriesQueries';
-import { getNutritableById, getNutritablesByIds } from 'database/queries/nutritablesQueries';
-import proportion from 'utils/proportion';
-import { Nutritable } from 'database/types';
 import { useMealSummaries } from 'context/SummariesContext';
 
 type MacroName = keyof MacroColors;

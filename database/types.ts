@@ -24,7 +24,7 @@ export interface Entry {
 
 // Daily Meals
 export interface Meal {
-    id: number;
+    id: 1 | 2 | 3 | 4 | 5;
     name: string;
     isDeleted: boolean;
 }

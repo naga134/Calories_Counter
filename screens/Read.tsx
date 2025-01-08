@@ -7,7 +7,7 @@ import { getAllUnits } from 'database/queries/unitsQueries';
 import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { useColors } from 'context/ColorContext';
 import { StaticScreenProps, useNavigation } from '@react-navigation/native';
-import { Food, Meal, Nutritable, Unit } from 'database/types';
+import { Meal, Nutritable, Unit } from 'database/types';
 import { deleteNutritable, getNutritablesByFood } from 'database/queries/nutritablesQueries';
 import IconSVG from 'components/Shared/icons/IconSVG';
 import ToggleView, { ViewMode } from 'components/Screens/Read/ToggleView';
@@ -23,6 +23,8 @@ import proportion from 'utils/proportion';
 import { deleteFood, getFoodById } from 'database/queries/foodsQueries';
 import { createEntry } from 'database/queries/entriesQueries';
 import { useDate } from 'context/DateContext';
+import { useMealSummaries } from 'context/SummariesContext';
+import mealKey from 'utils/mealKey';
 
 type Props = StaticScreenProps<{
   foodId: number;
@@ -44,6 +46,10 @@ export default function Read({ route }: Props) {
   const { foodId, meal } = route.params;
 
   const colors = useColors();
+
+  const daySummary = useMealSummaries().day;
+  const mealSummary = useMealSummaries()[mealKey(meal.id)];
+
   const screenWidth = Dimensions.get('window').width;
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const database: SQLiteDatabase = useSQLiteContext();
@@ -214,9 +220,31 @@ export default function Read({ route }: Props) {
                 <MacrosAccordion
                   expanded={viewMode !== ViewMode.Simple}
                   leftoverSpace={(accordionHeight / 4) * 3}>
-                  <MacrosTransition current={0} after={macros.fat} macro={'fat'} />
-                  <MacrosTransition current={0} after={macros.carbs} macro={'carbs'} />
-                  <MacrosTransition current={0} after={macros.protein} macro={'protein'} />
+                  <MacrosTransition
+                    current={viewMode === ViewMode.Meal ? mealSummary.fat : daySummary.fat}
+                    after={
+                      macros.fat + viewMode === ViewMode.Meal ? mealSummary.fat : daySummary.fat
+                    }
+                    macro={'fat'}
+                  />
+                  <MacrosTransition
+                    current={viewMode === ViewMode.Meal ? mealSummary.carbs : daySummary.carbs}
+                    after={
+                      macros.carbs + viewMode === ViewMode.Meal
+                        ? mealSummary.carbs
+                        : daySummary.carbs
+                    }
+                    macro={'carbs'}
+                  />
+                  <MacrosTransition
+                    current={viewMode === ViewMode.Meal ? mealSummary.protein : daySummary.protein}
+                    after={
+                      macros.protein + viewMode === ViewMode.Meal
+                        ? mealSummary.protein
+                        : daySummary.protein
+                    }
+                    macro={'protein'}
+                  />
                 </MacrosAccordion>
               </View>
             </View>
