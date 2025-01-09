@@ -30,3 +30,8 @@ export interface validateFoodInputsParams {
     // measure validation
     measure: string,
 }
+
+export interface validateEntryInputsParams {
+    // measure validation
+    measure: number,
+}

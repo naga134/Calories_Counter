@@ -30,6 +30,9 @@ import MacroInputField from 'components/Screens/Create/MacroInputField';
 import ToggleView, { ViewMode } from 'components/Screens/Read/ToggleView';
 import HorizontalUnitPicker from 'components/Screens/Read/HorizontalUnitPicker';
 import SegmentedMacrosBarChart from 'components/Screens/Read/SegmentedMacrosBarChart';
+import { Validation, ValidationStatus } from 'utils/validation/types';
+import Dialogs from 'components/Shared/Dialogs';
+import { validateEntryInputs } from 'utils/validation/validateEntry';
 
 type Props = StaticScreenProps<{
   foodId: number;
@@ -119,6 +122,29 @@ export default function Read({ route }: Props) {
     }
   }, [selectedNutritable, usedUnits]);
 
+  const [validationAttempted, setValidationAttempted] = useState(false);
+
+  const [validation, setValidation] = useState<Validation>({
+    status: ValidationStatus.Valid,
+    errors: [],
+  });
+
+  const resetValidation = () => {
+    setValidationAttempted(false);
+    setValidation({
+      status: ValidationStatus.Valid,
+      errors: [],
+    });
+  };
+
+  useEffect(resetValidation, [measurement]);
+
+  const [showDialogs, setShowDialogs] = useState(false);
+
+  useEffect(() => {
+    setShowDialogs(validation.status !== ValidationStatus.Valid);
+  }, [validation]);
+
   // Return a blank screen if the relevant data has not been properly fetched yet.
   if (!food || !nutritablesFetched || !usedUnits || usedUnits.length === 0 || !unusedUnits) {
     return <></>; // POSSIBLE ISSUE: fetchedUnits removed
@@ -127,7 +153,9 @@ export default function Read({ route }: Props) {
   return (
     <>
       <Portal.Host>
-        <Portal>{/* display any necessary pop-ups here */}</Portal>
+        <Portal>
+          <Dialogs show={showDialogs} setShow={setShowDialogs} errors={validation.errors} />
+        </Portal>
         <KeyboardAwareScrollView
           behavior="padding"
           nestedScrollEnabled
@@ -274,17 +302,21 @@ export default function Read({ route }: Props) {
             <TouchableOpacity
               style={styles.button}
               onPress={() => {
-                // TODO: VALIDATE FIRST!
-                const queryResult = createEntry(database, {
-                  foodId: food.id,
-                  nutritableId: selectedNutritable.id,
-                  date: date.get(),
-                  amount: Number(measurement),
-                  unitId: selectedNutritable.unit.id,
-                  mealId: meal.id,
+                const tempValidationStatus: Validation = validateEntryInputs({
+                  measure: Number(measurement),
                 });
-                // console.log(queryResult);
-                navigation.popTo('Home');
+
+                if (tempValidationStatus.status === ValidationStatus.Valid) {
+                  createEntry(database, {
+                    foodId: food.id,
+                    nutritableId: selectedNutritable.id,
+                    date: date.get(),
+                    amount: Number(measurement),
+                    unitId: selectedNutritable.unit.id,
+                    mealId: meal.id,
+                  });
+                  navigation.popTo('Home');
+                } else setValidation(tempValidationStatus);
               }}>
               <IconSVG name="utensils-solid" color={'white'} width={24} />
             </TouchableOpacity>
