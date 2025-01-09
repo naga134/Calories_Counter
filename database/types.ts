@@ -1,31 +1,20 @@
-// Foods
-export interface Food {
-    id: number;
-    name: string;
-    isDeleted: boolean;
+// Daily Meals
+export interface Meal {
+    id: 1 | 2 | 3 | 4 | 5;
+    name: 'Breakfast' | 'Morning' | 'Lunch' | 'Afternoon' | 'Dinner';
 }
 
-// Units
+// Measurement Units
 export interface Unit {
     id: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
     symbol: 'g' | 'ml' | 'lb' | 'tsp' | 'tbsp' | 'cup' | 'oz' | 'unit';
 }
 
-// Journal Entries
-export interface Entry {
+// Foods
+export interface Food {
     id: number;
-    foodId: number;
-    nutritableId: number;
-    date: Date;
-    amount: number;
-    unitId: number;
-    mealId: number;
-}
-
-// Daily Meals
-export interface Meal {
-    id: 1 | 2 | 3 | 4 | 5;
-    name: 'Breakfast' | 'Morning' | 'Lunch' | 'Afternoon' | 'Dinner';
+    name: string;
+    isDeleted: boolean;
 }
 
 // Nutritional Tables
@@ -40,3 +29,15 @@ export interface Nutritable {
     protein: number;
     // isDeleted: boolean;
 }
+
+// Journal Entries
+export interface Entry {
+    id: number;
+    foodId: number;
+    nutritableId: number;
+    date: Date;
+    amount: number;
+    unitId: number;
+    mealId: number;
+}
+
