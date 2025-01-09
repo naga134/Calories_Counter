@@ -7,8 +7,8 @@ export interface Food {
 
 // Units
 export interface Unit {
-    id: number;
-    symbol: string;
+    id: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+    symbol: 'g' | 'ml' | 'lb' | 'tsp' | 'tbsp' | 'cup' | 'oz' | 'unit';
 }
 
 // Journal Entries
@@ -25,18 +25,14 @@ export interface Entry {
 // Daily Meals
 export interface Meal {
     id: 1 | 2 | 3 | 4 | 5;
-    name: string;
-    isDeleted: boolean;
+    name: 'Breakfast' | 'Morning' | 'Lunch' | 'Afternoon' | 'Dinner';
 }
 
 // Nutritional Tables
 export interface Nutritable {
     id: number;
     foodId: number;
-    unit: {
-        id: number;
-        symbol: string;
-    };
+    unit: Unit;
     baseMeasure: number;
     kcals: number;
     carbs: number;

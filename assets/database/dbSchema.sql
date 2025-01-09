@@ -2,7 +2,6 @@
 CREATE TABLE IF NOT EXISTS "meals" (
     "id" INTEGER UNIQUE PRIMARY KEY NOT NULL,
     "name" TEXT UNIQUE NOT NULL,
-    "isDeleted" INTEGER NOT NULL CHECK (isDeleted IN (0, 1))
 );
 -- FOODS
 CREATE TABLE IF NOT EXISTS "foods" (
@@ -58,14 +57,15 @@ VALUES ('g', 1),
     ('tsp', 4),
     ('tbsp', 5),
     ('cup', 6),
-    ('oz', 7);
+    ('oz', 7),
+    ('unit', 8);
 -- Inserts initial ("out-of-the-box") meals.
-INSERT INTO meals (id, name, isDeleted)
-VALUES (1, 'Breakfast', 0),
-    (2, 'Morning', 0),
-    (3, 'Lunch', 0),
-    (4, 'Afternoon', 0),
-    (5, 'Dinner', 0);
+INSERT INTO meals (id, name)
+VALUES (1, 'Breakfast'),
+    (2, 'Morning'),
+    (3, 'Lunch'),
+    (4, 'Afternoon'),
+    (5, 'Dinner');
 -- Inserts initial foods (for ease of development only - DELETE FOR PRODUCTION)
 INSERT INTO foods (id, name, isDeleted)
 VALUES (1, 'Milk', 0),
