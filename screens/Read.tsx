@@ -141,9 +141,17 @@ export default function Read({ route }: Props) {
           <ToggleView viewMode={viewMode} setViewMode={setViewMode} />
           {/* Bars Chart */}
           <SegmentedMacrosBarChart
-            protein={calculatedMacros.protein}
-            fat={calculatedMacros.fat}
-            carbs={calculatedMacros.carbs}
+            viewMode={viewMode}
+            currentMacros={{
+              fat: base.fat,
+              protein: base.protein,
+              carbs: base.carbs,
+            }}
+            macrosToAdd={{
+              fat: calculatedMacros.fat,
+              protein: calculatedMacros.protein,
+              carbs: calculatedMacros.carbs,
+            }}
           />
           {/* Input Field: AMOUNT */}
           <MacroInputField

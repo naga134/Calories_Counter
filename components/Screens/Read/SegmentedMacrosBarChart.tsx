@@ -2,31 +2,76 @@ import { Colors, Text, View } from 'react-native-ui-lib';
 import IconSVG from 'components/Shared/icons/IconSVG';
 import AnimatedBar from 'components/Screens/Create/AnimatedBar';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { useColors } from 'context/ColorContext';
+import { ViewMode } from './ToggleView';
+import { Easing, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useEffect } from 'react';
 
-type macro = {
-  color: string;
-  amount: number;
-  icon: 'bacon-solid' | 'wheat-solid' | 'meat-solid';
+type Macros = {
+  fat: number;
+  protein: number;
+  carbs: number;
 };
 
 type MacrosBarChartProps = {
-  fat: number;
-  carbs: number;
-  protein: number;
+  viewMode: ViewMode;
+  currentMacros: Macros;
+  macrosToAdd: Macros;
 };
 
-export default function SegmentedMacrosBarChart({ fat, carbs, protein }: MacrosBarChartProps) {
-  const colors = useColors();
+type BarElement = {
+  color: string;
+  currentAmount: number;
+  amountToAdd: number;
+  icon: 'bacon-solid' | 'wheat-solid' | 'meat-solid';
+};
 
-  const macros: macro[] = [
-    { color: colors.get('fat'), icon: 'bacon-solid', amount: fat },
-    { color: colors.get('carbs'), icon: 'wheat-solid', amount: carbs },
-    { color: colors.get('protein'), icon: 'meat-solid', amount: protein },
+export default function SegmentedMacrosBarChart({
+  viewMode,
+  currentMacros,
+  macrosToAdd,
+}: MacrosBarChartProps) {
+  const colors = useColors();
+  const isSimple = viewMode === ViewMode.Simple;
+
+  const macros: BarElement[] = [
+    {
+      color: colors.get('fat'),
+      icon: 'bacon-solid',
+      currentAmount: currentMacros.fat,
+      amountToAdd: macrosToAdd.fat,
+    },
+    {
+      color: colors.get('carbs'),
+      icon: 'wheat-solid',
+      currentAmount: currentMacros.carbs,
+      amountToAdd: macrosToAdd.carbs,
+    },
+    {
+      color: colors.get('protein'),
+      icon: 'meat-solid',
+      currentAmount: currentMacros.protein,
+      amountToAdd: macrosToAdd.protein,
+    },
   ];
 
-  const currentMax = Math.max(fat, carbs, protein) || 1;
+  const currentMax =
+    Math.max(
+      currentMacros.fat + macrosToAdd.fat,
+      currentMacros.carbs + macrosToAdd.carbs,
+      currentMacros.protein + macrosToAdd.protein
+    ) || 1;
+
+  const animatedMaxAmount = useSharedValue(currentMax);
+  useEffect(() => {
+    animatedMaxAmount.value = withTiming(currentMax, {
+      duration: 1000,
+      easing: Easing.inOut(Easing.cubic),
+    });
+  }, [currentMax]);
+
+  const maxWidth = Dimensions.get('window').width - 100;
 
   return (
     // A linear gradient made unto border
@@ -35,7 +80,7 @@ export default function SegmentedMacrosBarChart({ fat, carbs, protein }: MacrosB
       end={{ x: 0, y: 0.5 }}
       style={{ borderRadius: 20, paddingHorizontal: 2, paddingBottom: 2 }}>
       <View row>
-        {/* Each macronutrient overview */}
+        {/* Each macronutrient's overview */}
         {macros.map((macro, index) => (
           <View
             key={index}
@@ -48,7 +93,7 @@ export default function SegmentedMacrosBarChart({ fat, carbs, protein }: MacrosB
               },
             ]}>
             <IconSVG color={Colors.white} width={28} name={macro.icon} />
-            <Text style={styles.macroText}>{macro.amount}</Text>
+            <Text style={styles.macroText}>{macro.amountToAdd}</Text>
           </View>
         ))}
       </View>
@@ -56,8 +101,25 @@ export default function SegmentedMacrosBarChart({ fat, carbs, protein }: MacrosB
       <View style={styles.barChart}>
         {macros.map((macro) => (
           <View key={macro.icon} style={styles.barFlex}>
-            <AnimatedBar amount={macro.amount} maxAmount={currentMax} color={macro.color} />
-            <IconSVG width={28} name={macro.icon} color={macro.color} />
+            <View
+              row
+              style={{ borderTopEndRadius: 8, borderBottomRightRadius: 8, overflow: 'hidden' }}>
+              <AnimatedBar
+                width={
+                  (maxWidth * macro.currentAmount) / currentMax +
+                  (!isSimple && macro.amountToAdd === 0 ? 8 : 0)
+                }
+                color={Colors.grey50}
+              />
+              <AnimatedBar
+                width={
+                  (maxWidth * macro.amountToAdd) / currentMax +
+                  (isSimple && macro.amountToAdd === 0 ? 8 : 0)
+                }
+                color={macro.color}
+              />
+            </View>
+            <IconSVG width={28} name={macro.icon} color={macro.color} style={{ marginLeft: 6 }} />
           </View>
         ))}
       </View>
@@ -91,6 +153,6 @@ const styles = StyleSheet.create({
   barFlex: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    // ,
   },
 });

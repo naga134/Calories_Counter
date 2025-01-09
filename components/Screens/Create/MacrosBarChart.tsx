@@ -2,8 +2,10 @@ import { Colors, Text, View } from 'react-native-ui-lib';
 import IconSVG from 'components/Shared/icons/IconSVG';
 import AnimatedBar from 'components/Screens/Create/AnimatedBar';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { useColors } from 'context/ColorContext';
+import { Easing, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useEffect } from 'react';
 
 type macro = {
   color: string;
@@ -27,6 +29,16 @@ export default function MacrosBarChart({ fat, carbs, protein }: MacrosBarChartPr
   ];
 
   const currentMax = Math.max(fat, carbs, protein) || 1;
+
+  const maxWidth = Dimensions.get('window').width - 100;
+
+  const animatedMaxAmount = useSharedValue(currentMax);
+  useEffect(() => {
+    animatedMaxAmount.value = withTiming(currentMax, {
+      duration: 1000,
+      easing: Easing.inOut(Easing.cubic),
+    });
+  }, [currentMax]);
 
   return (
     // A linear gradient made unto border
@@ -56,7 +68,14 @@ export default function MacrosBarChart({ fat, carbs, protein }: MacrosBarChartPr
       <View style={styles.barChart}>
         {macros.map((macro) => (
           <View key={macro.icon} style={styles.barFlex}>
-            <AnimatedBar amount={macro.amount} maxAmount={currentMax} color={macro.color} />
+            <AnimatedBar
+              width={
+                (maxWidth * macro.amount) / currentMax +
+                (macros.some((macro) => macro.amount === 0) ? 8 : 0)
+              }
+              color={macro.color}
+              style={{ borderTopEndRadius: 8, borderBottomEndRadius: 8 }}
+            />
             <IconSVG width={28} name={macro.icon} color={macro.color} />
           </View>
         ))}

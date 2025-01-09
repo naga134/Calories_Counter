@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Dimensions } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 import Animated, {
   Easing,
@@ -10,16 +10,13 @@ import Animated, {
 } from 'react-native-reanimated';
 
 type AnimatedBarProps = {
-  amount: number;
-  maxAmount: number;
+  width: number;
   color: string;
+  style?: StyleProp<ViewStyle>;
 };
 
-export default function AnimatedBar({ amount, maxAmount, color }: AnimatedBarProps) {
-  const screenWidth = Dimensions.get('window').width;
-
-  const animatedWidth = useSharedValue<number>(amount);
-  const animatedMax = useSharedValue(maxAmount);
+export default function AnimatedBar({ width, color, style }: AnimatedBarProps) {
+  const animatedWidth = useSharedValue<number>(width);
 
   const animationOptions: WithTimingConfig = {
     duration: 1000,
@@ -27,27 +24,16 @@ export default function AnimatedBar({ amount, maxAmount, color }: AnimatedBarPro
   };
 
   useEffect(() => {
-    animatedWidth.value = withTiming(amount, animationOptions);
-  }, [amount]);
-
-  useEffect(() => {
-    animatedMax.value = withTiming(maxAmount, animationOptions);
-  }, [maxAmount]);
+    animatedWidth.value = withTiming(width, animationOptions);
+  }, [width]);
 
   const animatedStyle = useAnimatedStyle(() => {
-    const availableWidth = screenWidth - 40 - 60;
-
     return {
+      width: animatedWidth.value,
       height: 30,
-      // PROPORTION:
-      // Available Width is to Max Value as Animated Width is to Current Value.
-      // + 8 is simply so that the bar is visible from the start.
-      width: (availableWidth * animatedWidth.value) / animatedMax.value + 8,
       backgroundColor: color,
-      borderBottomEndRadius: 5,
-      borderTopEndRadius: 5,
     };
   });
 
-  return <Animated.View style={animatedStyle} />;
+  return <Animated.View style={[style, animatedStyle]} />;
 }
