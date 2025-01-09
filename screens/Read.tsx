@@ -1,117 +1,68 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
+
+import { Portal } from 'react-native-paper';
+import { RootStackParamList } from 'navigation';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
+import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import { Dimensions, LayoutChangeEvent, Pressable, StyleSheet } from 'react-native';
 import { Colors, KeyboardAwareScrollView, Text, TouchableOpacity, View } from 'react-native-ui-lib';
-import { Portal } from 'react-native-paper';
-import { QueryObserverResult, RefetchOptions, useQuery } from '@tanstack/react-query';
-import { getAllUnits } from 'database/queries/unitsQueries';
-import { addDatabaseChangeListener, SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
-import { useColors } from 'context/ColorContext';
-import { StaticScreenProps, useNavigation } from '@react-navigation/native';
-import { Meal, Nutritable, Unit } from 'database/types';
-import { deleteNutritable, getNutritablesByFood } from 'database/queries/nutritablesQueries';
-import IconSVG from 'components/Shared/icons/IconSVG';
-import ToggleView, { ViewMode } from 'components/Screens/Read/ToggleView';
-import MacroInputField from 'components/Screens/Create/MacroInputField';
-import SegmentedMacrosBarChart from 'components/Screens/Read/SegmentedMacrosBarChart';
-import HorizontalUnitPicker from 'components/Screens/Read/HorizontalUnitPicker';
-import MacrosTransition from 'components/Screens/Read/MacrosTransition';
-import KcalsTransition from 'components/Screens/Read/KcalsTransition';
-import MacrosAccordion from 'components/Screens/Read/MacrosAccordion';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from 'navigation';
-import proportion from 'utils/proportion';
-import { deleteFood, getFoodById } from 'database/queries/foodsQueries';
-import { createEntry } from 'database/queries/entriesQueries';
-import { useDate } from 'context/DateContext';
-import { useMealSummaries } from 'context/SummariesContext';
+
 import mealKey from 'utils/mealKey';
 import toCapped from 'utils/toCapped';
+import proportion from 'utils/proportion';
+
+import { useColors } from 'context/ColorContext';
+import { useDate } from 'context/DateContext';
+import { useMealSummaries } from 'context/SummariesContext';
+
+import { Meal, Nutritable } from 'database/types';
+import { useFoodData } from 'database/hooks/useFoodData';
+import { deleteFood } from 'database/queries/foodsQueries';
+import { createEntry } from 'database/queries/entriesQueries';
+import { deleteNutritable } from 'database/queries/nutritablesQueries';
+
+import IconSVG from 'components/Shared/icons/IconSVG';
+import MacrosAccordion from 'components/Screens/Read/MacrosAccordion';
+import KcalsTransition from 'components/Screens/Read/KcalsTransition';
+import MacrosTransition from 'components/Screens/Read/MacrosTransition';
+import MacroInputField from 'components/Screens/Create/MacroInputField';
+import ToggleView, { ViewMode } from 'components/Screens/Read/ToggleView';
+import HorizontalUnitPicker from 'components/Screens/Read/HorizontalUnitPicker';
+import SegmentedMacrosBarChart from 'components/Screens/Read/SegmentedMacrosBarChart';
 
 type Props = StaticScreenProps<{
   foodId: number;
   meal: Meal;
 }>;
 
-type NutritableQueryReturn = {
-  data: Nutritable[];
-  isFetched: boolean;
-  refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<Nutritable[], Error>>;
-};
-
-type UnitsQueryReturn = {
-  data: Unit[];
-  isFetched: boolean;
-};
-
 export default function Read({ route }: Props) {
   const { foodId, meal } = route.params;
 
   const colors = useColors();
+  const screenWidth = Dimensions.get('window').width;
 
+  // Comparative-view-specific data retrieval
   const daySummary = useMealSummaries().day;
   const mealSummary = useMealSummaries()[mealKey(meal.id)];
 
-  const screenWidth = Dimensions.get('window').width;
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const database: SQLiteDatabase = useSQLiteContext();
+  // General-purpose data retrieval
   const date = useDate();
+  const database: SQLiteDatabase = useSQLiteContext();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-  const {
-    data: food,
-    isFetched: foodFetched,
-    refetch: refetchFood,
-  } = useQuery({
-    queryKey: [`FoodNo.${foodId}`],
-    queryFn: () => getFoodById(database, { foodId }),
-    initialData: null,
-  });
+  // Food-specific data retrieval
+  const { foodData, nutritablesData, units } = useFoodData({ foodId, database });
+  const { food } = foodData;
+  const { nutritables, fetched: nutritablesFetched } = nutritablesData;
+  const { used: usedUnits, unused: unusedUnits } = units;
 
-  // FETCHING the food's nutritables
-  const {
-    data: nutritables = [],
-    isFetched: nutritablesFetched,
-    refetch: refetchNutritables,
-  } = useQuery({
-    queryKey: [`FoodNo.${foodId}Nutritables`],
-    queryFn: () => getNutritablesByFood(database, { foodId }),
-    initialData: [],
-  });
-
-  // REFETCHES the food's nutritables on database change
-  useEffect(() => {
-    addDatabaseChangeListener((change) => {
-      if (change.tableName === 'nutritables') refetchNutritables();
-      if (change.tableName === 'foods') refetchFood();
-    });
-  }, []); // in useEffect: drops this listener when component unmounts.
-
-  // FETCHING all possible measurement units
-  const { data: allUnits = [], isFetched: unitsFetched }: UnitsQueryReturn = useQuery({
-    queryKey: ['allUnits'],
-    queryFn: () => getAllUnits(database),
-    initialData: [],
-  });
-
-  // Keeping track of USED and UNUSED measurement UNITS
-  const { usedUnits, unusedUnits } = useMemo(() => {
-    if (!nutritablesFetched || !unitsFetched) {
-      return { usedUnits: [], unusedUnits: [] };
-    }
-    // Creates a Set of used unit symbols for efficient lookup
-    const usedUnitSymbols = new Set(nutritables.map((nutritable) => nutritable.unit.symbol));
-    // Filters allUnits to get the usedUnits and the unusedUnits
-    const usedUnits = allUnits.filter((unit) => usedUnitSymbols.has(unit.symbol));
-    const unusedUnits = allUnits.filter((unit) => !usedUnitSymbols.has(unit.symbol));
-    return { usedUnits, unusedUnits };
-  }, [nutritables, allUnits, nutritablesFetched, unitsFetched]);
-
+  // Stateful variables
   const [measurement, setMeasurement] = useState<string>('');
-  const [selectedNutritable, setSelectedNutritable] = useState<Nutritable>();
-
-  useEffect(() => setSelectedNutritable(nutritables[0]), [nutritablesFetched, nutritables]);
-
-  // THIS TOGGLES THE VIEW MODE
+  const [selectedNutritable, setSelectedNutritable] = useState<Nutritable>(nutritables[0]);
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Simple);
+  const isSimple = viewMode === ViewMode.Simple;
+
   // Simple: displays the bar chart as seen before
   // Meal: displays a segmented bar chart in which grey-coloured segments represent the
   // amount of each macro that was present in the meal before this entry's addition
@@ -127,14 +78,9 @@ export default function Read({ route }: Props) {
 
   // Calculate Macros using useMemo
   const calculatedMacros = useMemo(() => {
-    if (!selectedNutritable || !measurement)
-      return {
-        kcals: 0,
-        fat: 0,
-        carbs: 0,
-        protein: 0,
-      };
+    if (!selectedNutritable || !measurement) return { kcals: 0, fat: 0, carbs: 0, protein: 0 };
 
+    // destructuring tableMacros
     const {
       kcals: tableKcals,
       fats: tableFats,
@@ -142,6 +88,7 @@ export default function Read({ route }: Props) {
       protein: tableProtein,
       baseMeasure,
     } = selectedNutritable;
+
     const entryAmount = Number(measurement);
 
     return {
@@ -152,21 +99,30 @@ export default function Read({ route }: Props) {
     };
   }, [measurement, selectedNutritable]);
 
-  // Return a blank screen if the relevant data has not as of yet been properly fetched.
-  if (
-    !food ||
-    !nutritablesFetched ||
-    !unitsFetched ||
-    !usedUnits ||
-    usedUnits.length === 0 ||
-    !unusedUnits
-  ) {
-    return <></>;
+  // Pre-defines the base for comparative view calculation
+  const base = useMemo(() => {
+    if (isSimple) {
+      return { kcals: 0, fat: 0, carbs: 0, protein: 0 };
+    }
+    return viewMode === ViewMode.Meal ? mealSummary : daySummary;
+  }, [isSimple, viewMode, mealSummary, daySummary]);
+
+  // Manages the currently selected HorizontalUnitPicker's index
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // Redefines the selected nutritable and HorizontalPicker's index upon nutritable deletion
+  useEffect(() => {
+    if (!nutritables.includes(selectedNutritable)) {
+      const newIndex = selectedIndex === 0 ? 0 : selectedIndex - 1;
+      setSelectedIndex(newIndex);
+      if (nutritables.length > 0) setSelectedNutritable(nutritables[newIndex]);
+    }
+  }, [selectedNutritable, usedUnits]);
+
+  // Return a blank screen if the relevant data has not been properly fetched yet.
+  if (!food || !nutritablesFetched || !usedUnits || usedUnits.length === 0 || !unusedUnits) {
+    return <></>; // POSSIBLE ISSUE: fetchedUnits removed
   }
-
-  console.log(mealSummary);
-
-  console.log(viewMode);
 
   return (
     <>
@@ -181,16 +137,14 @@ export default function Read({ route }: Props) {
           <View style={styles.nameBox}>
             <Text style={styles.name}>{food.name}</Text>
           </View>
-          {/* View Toggle */}
+          {/* View Mode Toggle */}
           <ToggleView viewMode={viewMode} setViewMode={setViewMode} />
-
           {/* Bars Chart */}
           <SegmentedMacrosBarChart
             protein={calculatedMacros.protein}
             fat={calculatedMacros.fat}
             carbs={calculatedMacros.carbs}
           />
-
           {/* Input Field: AMOUNT */}
           <MacroInputField
             text={measurement}
@@ -200,68 +154,33 @@ export default function Read({ route }: Props) {
             iconName={'scale-unbalanced-solid'}
             maxLength={7}
           />
-
           <View flex row style={{ flex: 1, gap: 12 }}>
             {/* Macros Box */}
             <View flex onLayout={onAccordionLayout}>
               <View style={{ overflow: 'hidden', borderRadius: 20 }}>
                 {/* This shows the total calories or its change */}
                 <KcalsTransition
-                  current={toCapped(
-                    viewMode === ViewMode.Simple
-                      ? calculatedMacros.kcals
-                      : viewMode === ViewMode.Meal
-                        ? mealSummary.kcals
-                        : daySummary.kcals,
-                    2
-                  )}
-                  after={toCapped(
-                    calculatedMacros.kcals +
-                      (viewMode === ViewMode.Meal ? mealSummary.kcals : daySummary.kcals),
-                    2
-                  )}
-                  expanded={viewMode !== ViewMode.Simple}
+                  current={toCapped(isSimple ? calculatedMacros.kcals : base.kcals, 2)}
+                  after={toCapped(calculatedMacros.kcals + base.kcals, 2)}
+                  expanded={!isSimple}
                   expandedHeight={accordionHeight / 4}
                 />
                 {/* This shows the change in macros */}
-                <MacrosAccordion
-                  expanded={viewMode !== ViewMode.Simple}
-                  leftoverSpace={(accordionHeight / 4) * 3}>
+                <MacrosAccordion expanded={!isSimple} leftoverSpace={(accordionHeight / 4) * 3}>
                   <MacrosTransition
-                    current={toCapped(
-                      viewMode === ViewMode.Meal ? mealSummary.fat : daySummary.fat,
-                      2
-                    )}
-                    after={toCapped(
-                      calculatedMacros.fat +
-                        (viewMode === ViewMode.Meal ? mealSummary.fat : daySummary.fat),
-                      2
-                    )}
-                    macro={'fat'}
+                    current={toCapped(base.fat, 2)}
+                    after={toCapped(calculatedMacros.fat + base.fat, 2)}
+                    macro="fat"
                   />
                   <MacrosTransition
-                    current={toCapped(
-                      viewMode === ViewMode.Meal ? mealSummary.carbs : daySummary.carbs,
-                      2
-                    )}
-                    after={toCapped(
-                      calculatedMacros.carbs +
-                        (viewMode === ViewMode.Meal ? mealSummary.carbs : daySummary.carbs),
-                      2
-                    )}
-                    macro={'carbs'}
+                    current={toCapped(base.carbs, 2)}
+                    after={toCapped(calculatedMacros.carbs + base.carbs, 2)}
+                    macro="carbs"
                   />
                   <MacrosTransition
-                    current={toCapped(
-                      viewMode === ViewMode.Meal ? mealSummary.protein : daySummary.protein,
-                      2
-                    )}
-                    after={toCapped(
-                      calculatedMacros.protein +
-                        (viewMode === ViewMode.Meal ? mealSummary.protein : daySummary.protein),
-                      2
-                    )}
-                    macro={'protein'}
+                    current={toCapped(base.protein, 2)}
+                    after={toCapped(calculatedMacros.protein + base.protein, 2)}
+                    macro="protein"
                   />
                 </MacrosAccordion>
               </View>
@@ -271,12 +190,9 @@ export default function Read({ route }: Props) {
               {/* Unit Picker */}
               <HorizontalUnitPicker
                 data={usedUnits}
+                selectedIndex={{ value: selectedIndex, set: setSelectedIndex }}
+                onChangeUnit={() => setSelectedNutritable(nutritables[selectedIndex])}
                 wheelWidth={(screenWidth - 52) / 2}
-                onChangeUnit={(selectedUnit) =>
-                  setSelectedNutritable(
-                    nutritables.find((nutritable) => nutritable.unit.symbol === selectedUnit.symbol)
-                  )
-                }
               />
               {/* Caret Indicator */}
               <IconSVG

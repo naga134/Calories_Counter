@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
-  TouchableOpacity,
   StyleSheet,
   View,
   Text,
@@ -17,42 +16,66 @@ type Unit = {
 };
 
 interface HorizontalUnitsPickerProps {
+  // Logic
   data: Unit[];
+  selectedIndex: {
+    value: number;
+    set: React.Dispatch<React.SetStateAction<number>>;
+  };
+  onChangeUnit: (unit: Unit) => void;
+  // Render
   wheelWidth: number; // The visible width of this picker
   wheelHeight?: number; // Let the parent specify a fixed height for the picker
-  onChangeUnit: (unit: Unit) => void;
 }
 
 export default function HorizontalUnitsPicker({
   data,
   wheelWidth,
   wheelHeight = 80, // fallback to 80 if none given
+  selectedIndex,
   onChangeUnit,
 }: HorizontalUnitsPickerProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const flatListRef = useRef<FlatList<Unit>>(null);
 
   // Each item takes up 1/3 of the available picker width
   const ITEM_WIDTH = wheelWidth / 3;
 
+  // Informs whether there is an ongoing scrolling action.
+  const [scrolling, setScrolling] = useState(false);
+
   // Called when scrolling stops. Figure out which item is centered, set it as selected.
   const handleMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = e.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / ITEM_WIDTH);
-    setSelectedIndex(index);
+    selectedIndex.set(index);
+    setScrolling(false);
   };
 
-  // Called when user taps an item. Scroll there, set selectedIndex.
+  // Handles scroll on user press
   const handlePress = (index: number) => {
-    setSelectedIndex(index);
+    setScrolling(true);
+    selectedIndex.set(index);
     flatListRef.current?.scrollToOffset({
       offset: index * ITEM_WIDTH,
       animated: true,
     });
   };
 
+  // Handles scroll on data change
   useEffect(() => {
-    onChangeUnit(data[selectedIndex]);
+    // workaround: this prevented handlePress' animation from occuring
+    if (scrolling === false) {
+      if (selectedIndex.value >= 0 && selectedIndex.value < data.length) {
+        flatListRef.current?.scrollToOffset({
+          offset: selectedIndex.value * ITEM_WIDTH,
+          animated: true,
+        });
+      }
+    }
+  }, [selectedIndex, data]);
+
+  useEffect(() => {
+    onChangeUnit(data[selectedIndex.value]);
   }, [selectedIndex]);
 
   return (
@@ -86,7 +109,7 @@ export default function HorizontalUnitsPicker({
         decelerationRate="fast"
         onMomentumScrollEnd={handleMomentumScrollEnd}
         renderItem={({ item, index }) => {
-          const isSelected = index === selectedIndex;
+          const isSelected = index === selectedIndex.value;
           return (
             <Pressable
               style={[styles.itemContainer, { width: ITEM_WIDTH }]}
