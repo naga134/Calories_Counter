@@ -47,14 +47,6 @@ type EntrySummary = {
   kcals: number;
 };
 
-export type MacroSummary = {
-  mealId?: number;
-  kcals: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-};
-
 export default function MealDrawer({ meal, summaries }: MealDrawerProps) {
   const [expanded, setExpanded] = useState(false);
 

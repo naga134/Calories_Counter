@@ -67,7 +67,7 @@ export default function KcalsTransition({
           <IconSVG color="white" name="ball-pile-solid" width={24} />
           <View>
             <Text white style={{ fontSize: 18 }}>
-              {after} kcal
+              {current} kcal
             </Text>
           </View>
         </View>

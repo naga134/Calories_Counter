@@ -111,10 +111,6 @@ export default function Home() {
 
   // SECTION 4: Component itself
 
-  console.log('day ' + day.kcals);
-  console.log('breakfast: ' + breakfast.kcals);
-  console.log('morning: ' + morning.kcals);
-
   return (
     <>
       {/* Modal */}

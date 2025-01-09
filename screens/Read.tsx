@@ -25,6 +25,7 @@ import { createEntry } from 'database/queries/entriesQueries';
 import { useDate } from 'context/DateContext';
 import { useMealSummaries } from 'context/SummariesContext';
 import mealKey from 'utils/mealKey';
+import toCapped from 'utils/toCapped';
 
 type Props = StaticScreenProps<{
   foodId: number;
@@ -124,14 +125,6 @@ export default function Read({ route }: Props) {
     setAccordionHeight(e.nativeEvent.layout.height);
   }, []);
 
-  // Consolidated Macros State
-  const [macros, setMacros] = useState({
-    kcals: 0,
-    fat: 0,
-    carbs: 0,
-    protein: 0,
-  });
-
   // Calculate Macros using useMemo
   const calculatedMacros = useMemo(() => {
     if (!selectedNutritable || !measurement)
@@ -159,11 +152,6 @@ export default function Read({ route }: Props) {
     };
   }, [measurement, selectedNutritable]);
 
-  // Update Macros State
-  useEffect(() => {
-    setMacros(calculatedMacros);
-  }, [calculatedMacros]);
-
   // Return a blank screen if the relevant data has not as of yet been properly fetched.
   if (
     !food ||
@@ -175,6 +163,10 @@ export default function Read({ route }: Props) {
   ) {
     return <></>;
   }
+
+  console.log(mealSummary);
+
+  console.log(viewMode);
 
   return (
     <>
@@ -193,7 +185,11 @@ export default function Read({ route }: Props) {
           <ToggleView viewMode={viewMode} setViewMode={setViewMode} />
 
           {/* Bars Chart */}
-          <SegmentedMacrosBarChart protein={macros.protein} fat={macros.fat} carbs={macros.carbs} />
+          <SegmentedMacrosBarChart
+            protein={calculatedMacros.protein}
+            fat={calculatedMacros.fat}
+            carbs={calculatedMacros.carbs}
+          />
 
           {/* Input Field: AMOUNT */}
           <MacroInputField
@@ -211,8 +207,19 @@ export default function Read({ route }: Props) {
               <View style={{ overflow: 'hidden', borderRadius: 20 }}>
                 {/* This shows the total calories or its change */}
                 <KcalsTransition
-                  current={0}
-                  after={macros.kcals}
+                  current={toCapped(
+                    viewMode === ViewMode.Simple
+                      ? calculatedMacros.kcals
+                      : viewMode === ViewMode.Meal
+                        ? mealSummary.kcals
+                        : daySummary.kcals,
+                    2
+                  )}
+                  after={toCapped(
+                    calculatedMacros.kcals +
+                      (viewMode === ViewMode.Meal ? mealSummary.kcals : daySummary.kcals),
+                    2
+                  )}
                   expanded={viewMode !== ViewMode.Simple}
                   expandedHeight={accordionHeight / 4}
                 />
@@ -221,28 +228,39 @@ export default function Read({ route }: Props) {
                   expanded={viewMode !== ViewMode.Simple}
                   leftoverSpace={(accordionHeight / 4) * 3}>
                   <MacrosTransition
-                    current={viewMode === ViewMode.Meal ? mealSummary.fat : daySummary.fat}
-                    after={
-                      macros.fat + viewMode === ViewMode.Meal ? mealSummary.fat : daySummary.fat
-                    }
+                    current={toCapped(
+                      viewMode === ViewMode.Meal ? mealSummary.fat : daySummary.fat,
+                      2
+                    )}
+                    after={toCapped(
+                      calculatedMacros.fat +
+                        (viewMode === ViewMode.Meal ? mealSummary.fat : daySummary.fat),
+                      2
+                    )}
                     macro={'fat'}
                   />
                   <MacrosTransition
-                    current={viewMode === ViewMode.Meal ? mealSummary.carbs : daySummary.carbs}
-                    after={
-                      macros.carbs + viewMode === ViewMode.Meal
-                        ? mealSummary.carbs
-                        : daySummary.carbs
-                    }
+                    current={toCapped(
+                      viewMode === ViewMode.Meal ? mealSummary.carbs : daySummary.carbs,
+                      2
+                    )}
+                    after={toCapped(
+                      calculatedMacros.carbs +
+                        (viewMode === ViewMode.Meal ? mealSummary.carbs : daySummary.carbs),
+                      2
+                    )}
                     macro={'carbs'}
                   />
                   <MacrosTransition
-                    current={viewMode === ViewMode.Meal ? mealSummary.protein : daySummary.protein}
-                    after={
-                      macros.protein + viewMode === ViewMode.Meal
-                        ? mealSummary.protein
-                        : daySummary.protein
-                    }
+                    current={toCapped(
+                      viewMode === ViewMode.Meal ? mealSummary.protein : daySummary.protein,
+                      2
+                    )}
+                    after={toCapped(
+                      calculatedMacros.protein +
+                        (viewMode === ViewMode.Meal ? mealSummary.protein : daySummary.protein),
+                      2
+                    )}
                     macro={'protein'}
                   />
                 </MacrosAccordion>
