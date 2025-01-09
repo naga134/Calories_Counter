@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { SQLiteDatabase, useSQLiteContext } from 'expo-sqlite';
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Colors, Icon, Text, View } from 'react-native-ui-lib';
+import { Colors, View } from 'react-native-ui-lib';
 import { Dimensions, Pressable, ScrollView, StyleSheet } from 'react-native';
 
 // Custom Hooks
@@ -22,6 +22,7 @@ import MacroLegendItem from 'components/Screens/List/MacroLegendItem';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { useMealSummaries } from 'context/SummariesContext';
+import toCapped from 'utils/toCapped';
 
 type MacroName = keyof MacroColors;
 
@@ -90,22 +91,22 @@ export default function Home() {
     {
       color: colors.get('fat'),
       iconName: 'bacon-solid',
-      amount: day.fat.toFixed(2),
+      amount: toCapped(day.fat, 2),
     },
     {
       color: colors.get('carbs'),
       iconName: 'wheat-solid',
-      amount: day.carbs.toFixed(2),
+      amount: toCapped(day.carbs, 2),
     },
     {
       color: colors.get('protein'),
       iconName: 'meat-solid',
-      amount: day.protein.toFixed(2),
+      amount: toCapped(day.protein, 2),
     },
     {
       color: colors.get('kcals'),
       iconName: 'ball-pile-solid',
-      amount: day.kcals.toFixed(2),
+      amount: toCapped(day.kcals, 2),
     },
   ] as const;
 

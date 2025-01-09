@@ -5,7 +5,7 @@ import { Colors, Text } from 'react-native-ui-lib';
 type MacroOverviewProps = {
   color: string;
   iconName: 'meat-solid' | 'wheat-solid' | 'bacon-solid' | 'ball-pile-solid';
-  amount: string;
+  amount: number;
 };
 
 export default function MacroOverview({ color, iconName, amount }: MacroOverviewProps) {

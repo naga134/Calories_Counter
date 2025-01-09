@@ -6,7 +6,7 @@ export const createEntry = (
     database: SQLiteDatabase,
     params: {
         foodId: number,
-        nutritablesId: number,
+        nutritableId: number,
         date: Date,
         amount: number,
         unitId: number,
