@@ -15,6 +15,7 @@ import { getNutritablesByIds } from 'database/queries/nutritablesQueries';
 import { getFoodsByIds } from 'database/queries/foodsQueries';
 import proportion from 'utils/proportion';
 import { getAllUnits } from 'database/queries/unitsQueries';
+import { useUnits } from 'database/hooks/useUnits';
 
 type MealDrawerProps = {
   meal: Meal;
@@ -97,12 +98,7 @@ export default function MealDrawer({ meal, summaries }: MealDrawerProps) {
     enabled: entriesFetched && entries.length > 0,
   });
 
-  // FETCHING all UNITS
-  const { data: units = [], isFetched: unitsFetched } = useQuery({
-    queryKey: ['allUnits'],
-    queryFn: () => getAllUnits(database),
-    initialData: [],
-  });
+  const { units, unitsFetched } = useUnits(database);
 
   useEffect(() => {
     const listener = addDatabaseChangeListener((change) => {
@@ -125,11 +121,12 @@ export default function MealDrawer({ meal, summaries }: MealDrawerProps) {
   }, [entries]);
 
   const entriesSummary: EntrySummary[] = useMemo(() => {
-    if (!foodsFetched || !nutritablesFetched) {
+    if (!foodsFetched || !nutritablesFetched || !unitsFetched) {
       return [];
     }
 
     return entries.map((entry) => {
+      console.log(entry);
       const nutritable = nutritables.find((table) => table.id === entry.nutritableId);
       const food = foods.find((f) => f.id === entry.foodId);
 
@@ -141,9 +138,12 @@ export default function MealDrawer({ meal, summaries }: MealDrawerProps) {
           food,
           nutritableId: entry.nutritableId,
           kcals: 0,
-          unit: '',
+          unitId: entry.unitId,
         };
       }
+
+      // console.log(units);
+      // console.log(nutritable);
 
       return {
         id: entry.id,
@@ -152,10 +152,10 @@ export default function MealDrawer({ meal, summaries }: MealDrawerProps) {
         nutritableId: entry.nutritableId,
         kcals: proportion(nutritable.kcals, entry.amount, nutritable.baseMeasure),
         // use optional chaining on unitId:
-        unit: units.find((u) => u.id === nutritable.unitId)?.symbol ?? '',
+        unitId: entry.unitId,
       };
     });
-  }, [entries, nutritables, foods, foodsFetched, nutritablesFetched, units]);
+  }, [entries, nutritables, foods, foodsFetched, nutritablesFetched, units, unitsFetched]);
 
   return (
     <ExpandableSection
@@ -201,6 +201,8 @@ function DrawerBody({ meal, entries }: DrawerBodyProps) {
   const database: SQLiteDatabase = useSQLiteContext();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const screenWidth = Dimensions.get('window').width;
+
+  const { units } = useUnits(database);
 
   return (
     <View style={styles.sectionBody}>
@@ -252,7 +254,8 @@ function DrawerBody({ meal, entries }: DrawerBodyProps) {
                   }}>
                   {/* <Text violet40>{`${entry.kcals} kcal `}</Text> */}
                   <Text style={{ flex: 1, fontSize: 16 }}>{entry.food.name}</Text>
-                  <Text violet50>{`${entry.amount}${entry.unit}`}</Text>
+                  <Text
+                    violet50>{`${entry.amount}${units.find((u) => u.id === entry.unitId)?.symbol}`}</Text>
                 </View>
                 <View
                   row

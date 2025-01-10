@@ -33,6 +33,7 @@ import SegmentedMacrosBarChart from 'components/Screens/Read/SegmentedMacrosBarC
 import { Validation, ValidationStatus } from 'utils/validation/types';
 import Dialogs from 'components/Shared/Dialogs';
 import { validateEntryInputs } from 'utils/validation/validateEntry';
+import toSQLiteParams from 'utils/toSQLiteParams';
 
 type Props = StaticScreenProps<{
   foodId: number;
@@ -155,6 +156,7 @@ export default function Read({ route }: Props) {
       <Portal.Host>
         <Portal>
           <Dialogs show={showDialogs} setShow={setShowDialogs} errors={validation.errors} />
+          {/* TODO: add confirmation dialog for deletion */}
         </Portal>
         <KeyboardAwareScrollView
           behavior="padding"

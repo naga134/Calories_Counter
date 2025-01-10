@@ -3,7 +3,7 @@ import { Food } from "database/types";
 import toSQLiteParams from "utils/toSQLiteParams";
 
 export const getAllFoods = async (database: SQLiteDatabase): Promise<Food[]> => {
-  const query = "SELECT * FROM foods;";
+  const query = "SELECT * FROM foods WHERE isDeleted = 0;";
   const queryResult = await database.getAllAsync(query);
   return queryResult.map((row: any) => ({
     id: row.id,
@@ -34,7 +34,7 @@ export const getFoodsByIds = async (database: SQLiteDatabase, params: { ids: num
 }
 
 export const getAllFoodNames = async (database: SQLiteDatabase): Promise<string[]> => {
-  const query = "SELECT name FROM foods;";
+  const query = "SELECT name FROM foods WHERE isDeleted = 0;";
   const queryResult = await database.getAllAsync(query);
   return queryResult.map((row: any) => row.name)
 }
@@ -45,8 +45,10 @@ export const createFood = (database: SQLiteDatabase, params: { foodName: string 
 };
 
 export const deleteFood = (database: SQLiteDatabase, params: { foodId: number }) => {
+  const entry = database.getFirstSync("SELECT * FROM entries WHERE foodId = $foodId", toSQLiteParams(params))
   const query = `DELETE FROM foods WHERE id = $foodId;`
-  return database.runSync(query, toSQLiteParams(params));
+  const altQuery = `UPDATE foods SET isDeleted = 1 WHERE id = $foodId;`
+  return database.runSync(entry ? query : altQuery, toSQLiteParams(params));
 };
 
 export const updateFoodName = (database: SQLiteDatabase, params: { foodId: number, newFoodName: string }) => {

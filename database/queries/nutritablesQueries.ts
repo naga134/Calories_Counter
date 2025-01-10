@@ -84,8 +84,10 @@ export const updateNutritable = (database: SQLiteDatabase, params: {
 export const deleteNutritable = (database: SQLiteDatabase, params: {
     nutritableId: number
 }) => {
+    const entry = database.getAllSync("SELECT * FROM entries WHERE nutritableId = $nutritableId", toSQLiteParams(params))
     const query = `DELETE FROM nutritables WHERE id = $nutritableId;`
-    return database.runSync(query, toSQLiteParams(params))
+    const altQuery = `UPDATE nutritables SET isDeleted = 1 WHERE id = $nutritableId;`
+    return database.runSync(entry ? query : altQuery, toSQLiteParams(params))
 }
 
 export const getNutritableById = async (database: SQLiteDatabase, params: { id: number }): Promise<Nutritable | null> => {
@@ -106,5 +108,22 @@ export const getNutritablesByIds = async (database: SQLiteDatabase, params: { id
         paramDict[`id${index}`] = id;
     });
 
-    return await database.getAllAsync<Nutritable>(query, toSQLiteParams(paramDict))
+    const queryReturn = await database.getAllAsync<Nutritable>(query, toSQLiteParams(paramDict))
+
+    return queryReturn.map((table: any) => ({
+        // identifiers
+        id: table.id,
+        foodId: table.foodId,
+        unit: {
+            id: table.unitId,
+            symbol: table.unitSymbol,
+        },
+        // measurements
+        baseMeasure: table.baseMeasure,
+        kcals: table.kcals,
+        carbs: table.carbs,
+        fats: table.fats,
+        protein: table.protein,
+        isDeleted: table.isDeleted
+    }));
 }
